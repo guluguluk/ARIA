@@ -112,16 +112,35 @@ Actions will eventually be divided into different permission levels:
 
 The goal is to make ARIA powerful **without making it reckless**.
 
-## 📜 Project Status
+📊 ARIA — Project Status
 
-**Current stage:** Day 1 — Initial project setup
+Current Version: v0.0.2
+Development Day: 2 / 30
+Status: 🟢 Active Development
+Platform: Windows 11
+Language: Python
+IDE: VS Code
 
-ARIA currently exists as a minimal Python program confirming that the project is running.
-
-Future versions will gradually add intelligence, voice interaction, automation, and system control.
-
----
-
-> **ARIA — Adaptive Responsive Intelligent Assistant**
->
-> *Built one capability at a time.*
+✅ Completed
+ Project initialized
+ Basic aria.py
+ ARIA startup message
+ Interactive command loop
+ Exit/quit handling
+🚧 In Progress
+ AI integration
+ Natural-language understanding
+ Voice input/output
+ System control
+ Online/offline modes
+🔮 Planned
+ Local AI
+ Cloud AI
+ Tool-calling system
+ File management
+ Application control
+ Browser automation
+ Memory
+ Multi-device support
+ Android companion
+ macOS support
