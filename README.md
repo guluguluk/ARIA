@@ -122,25 +122,27 @@ Language: Python
 IDE: VS Code
 
 ✅ Completed
- Project initialized
- Basic aria.py
- ARIA startup message
- Interactive command loop
+ Project initialized,
+ Basic aria.py,
+ ARIA startup message,
+ Interactive command loop,
  Exit/quit handling
-🚧 In Progress
- AI integration
- Natural-language understanding
- Voice input/output
- System control
+ 
+ 🚧 In Progress
+ AI integration,
+ Natural-language understanding,
+ Voice input/output,
+ System control,
  Online/offline modes
-🔮 Planned
- Local AI
- Cloud AI
- Tool-calling system
- File management
- Application control
- Browser automation
- Memory
- Multi-device support
- Android companion
+
+ 🔮 Planned
+ Local AI,
+ Cloud AI,
+ Tool-calling system,
+ File management,
+ Application control,
+ Browser automation,
+ Memory,
+ Multi-device support,
+ Android companion,
  macOS support
