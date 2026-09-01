@@ -1,3 +1,4 @@
+conversation = []
 def process_command(command):
     command = command.lower().strip()
 
@@ -26,12 +27,31 @@ def main():
         command = input("You: ")
         response = process_command(command)
 
+
+        # Store what the user said
+        conversation.append({
+            "role": "user",
+            "message": command
+        })
+
+        response = process_command(command)
+
         if response is None:
             print("ARIA: Goodbye!")
             break
+        # Store ARIA's response
+        conversation.append({
+            "role": "aria",
+            "message": response
+        })
+
 
         print(f"ARIA: {response}")
 
 
 if __name__ == "__main__":
     main()
+
+
+#Only for dev
+print(conversation)
