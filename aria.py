@@ -1,6 +1,4 @@
 conversation = []
-
-
 def process_command(command):
     command = command.lower().strip()
 
@@ -27,6 +25,8 @@ def main():
 
     while True:
         command = input("You: ")
+        response = process_command(command)
+
 
         # Store what the user said
         conversation.append({
@@ -39,12 +39,12 @@ def main():
         if response is None:
             print("ARIA: Goodbye!")
             break
-
         # Store ARIA's response
         conversation.append({
             "role": "aria",
             "message": response
         })
+
 
         print(f"ARIA: {response}")
 
