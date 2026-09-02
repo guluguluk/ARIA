@@ -114,9 +114,11 @@ The goal is to make ARIA powerful **without making it reckless**.
 
 📊 ARIA — Project Status
 
-Day 1  ✅ Project initialized
-Day 2  ✅ Interactive command loop
-Day 3  ✅ Basic command processing
-Day 4  ✅ Session conversation memory
-
-Day 5  ⬜ First AI integration
+ARIA
+ │
+ ├── Python 3.11                 ✅
+ ├── google-genai SDK            ✅
+ ├── .env                        ✅
+ ├── GEMINI_API_KEY              ✅
+ ├── Google API connection       ✅
+ └── Gemini 3.5 Flash Lite       ✅
