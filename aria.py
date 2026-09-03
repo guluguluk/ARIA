@@ -1,3 +1,15 @@
+from google import genai
+
+conversation = []
+
+client = genai.Client()
+def ask_gemini(command):
+    response = client.models.generate_content(
+        model="gemini-3.5-flash-lite",
+        contents=command
+    )
+
+    return response.text
 conversation = []
 def process_command(command):
     command = command.lower().strip()
@@ -5,17 +17,23 @@ def process_command(command):
     if command == "hello":
         return "Hello! How can I help you?"
 
+    elif command == "hi":
+        return "Hi there! How can I assist you today?"
+
     elif command == "status":
         return "All systems are operational."
 
     elif command == "who are you":
         return "I am ARIA — Adaptive Responsive Intelligent Assistant."
 
+    elif command == "who are you?":
+        return "I am ARIA — Adaptive Responsive Intelligent Assistant."
+
     elif command in ["exit", "quit"]:
         return None
 
     else:
-        return "I don't understand that command yet."
+        return ask_gemini(command)
 
 
 def main():
@@ -24,8 +42,8 @@ def main():
     print()
 
     while True:
-        command = input("You: ")
-        response = process_command(command)
+        cmd1 = input("You: ")
+        command = cmd1.lower().strip()
 
 
         # Store what the user said
@@ -54,4 +72,4 @@ if __name__ == "__main__":
 
 
 #Only for dev
-print(conversation)
+#print(conversation)
