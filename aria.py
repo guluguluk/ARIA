@@ -10,7 +10,7 @@ def ask_gemini(command):
     )
 
     return response.text
-conversation = []
+
 def process_command(command):
     command = command.lower().strip()
 
