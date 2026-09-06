@@ -3,10 +3,29 @@ from google import genai
 conversation = []
 
 client = genai.Client()
+
 def ask_gemini(command):
+    history = ""
+
+    for message in conversation:
+        history += f"{message['role']}: {message['message']}\n"
+
+    prompt = f"""
+You are ARIA — Adaptive Responsive Intelligent Assistant.
+
+Here is the conversation so far:
+
+{history}
+
+User's latest message:
+{command}
+
+Respond naturally and helpfully.
+"""
+
     response = client.models.generate_content(
         model="gemini-3.5-flash-lite",
-        contents=command
+        contents=prompt
     )
 
     return response.text
