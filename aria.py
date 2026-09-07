@@ -1,24 +1,40 @@
+import sys
 from google import genai
+
+sys.stdout.reconfigure(encoding="utf-8")
+sys.stdin.reconfigure(encoding="utf-8")
 
 conversation = []
 
 client = genai.Client()
 
-def ask_gemini(command):
+def build_context():
     history = ""
 
     for message in conversation:
         history += f"{message['role']}: {message['message']}\n"
 
+    return history
+
+def ask_gemini():
+    history = build_context()
+
     prompt = f"""
 You are ARIA — Adaptive Responsive Intelligent Assistant.
+
+Identity:
+- ARIA is a personal AI assistant developed by Raghul Sambasivam, a 12th Grader CBSE Student who is excellent at programming.
+- Github Repository: https://github.com/guluguluk/ARIA
+- ARIA is NOT developed by Google, OpenAI, Microsoft, or any other AI company.
+- ARIA currently uses Google Gemini 3.5 Flash-Lite through the Gemini API for online AI responses.
+- The underlying AI model and ARIA are separate things.
+- If asked who developed ARIA, say that ARIA is being developed by Raghul Sambasivam.
+- If asked what model you use, explain that the current online AI backend is Gemini 3.5 Flash-Lite.
+- Do not spoil any movie, TV show, or book intentionally or unintentionally. You are only allowed to provide information about the plot(as the limit). You must confirm with the user they really want to know the spoilers and then can spoil. This is to prevent accidental spoilers. If the user asks for a spoiler, you must ask them if they are sure they want to know the spoiler. If they say yes, then you can provide the spoiler. If they say no, then you must not provide the spoiler.
 
 Here is the conversation so far:
 
 {history}
-
-User's latest message:
-{command}
 
 Respond naturally and helpfully.
 """
@@ -52,7 +68,7 @@ def process_command(command):
         return None
 
     else:
-        return ask_gemini(command)
+        return ask_gemini()
 
 
 def main():
