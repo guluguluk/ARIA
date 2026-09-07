@@ -114,11 +114,15 @@ The goal is to make ARIA powerful **without making it reckless**.
 
 📊 ARIA — Project Status
 
-ARIA
- │
- ├── Python 3.11                 ✅
- ├── google-genai SDK            ✅
- ├── .env                        ✅
- ├── GEMINI_API_KEY              ✅
- ├── Google API connection       ✅
- └── Gemini 3.5 Flash Lite       ✅
+| Feature                             | Status    |
+| ----------------------------------- | --------- |
+| Basic commands                      | ✅         |
+| Gemini integration                  | ✅         |
+| Gemini 3.5 Flash-Lite               | ✅         |
+| API key security                    | ✅         |
+| Session memory storage              | ✅         |
+| Conversation context sent to Gemini | ✅         |
+| Context-aware responses             | ✅         |
+| Persistent memory                   | ❌ Not yet |
+| Web-grounded answers                | ❌ Not yet |
+| Offline Qwen                        | ❌ Not yet |
