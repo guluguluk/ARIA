@@ -46,9 +46,28 @@ Respond naturally and helpfully.
 
     return response.text
 
+def route_command(command):
+    command = command.lower().strip()
+
+    if command in ["hello", "hi", "status", "who are you", "who are you?", "exit", "quit"]:
+        return "LEVEL_1"
+
+    elif any(word in command for word in ["code", "python", "program", "debug"]):
+        return "LEVEL_2"
+
+    elif any(word in command for word in ["latest", "today", "current", "news", "weather"]):
+        return "ONLINE"
+
+    else:
+        return "LEVEL_3"
+
 def process_command(command):
     command = command.lower().strip()
 
+    route = route_command(command)
+
+    print(f"[Router] {route}")
+    
     if command == "hello":
         return "Hello! How can I help you?"
 
