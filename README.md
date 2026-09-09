@@ -156,7 +156,7 @@ Examples:
 
 ### Level 2 — Local AI
 
-Uses a locally running AI model such as **Qwen** through a local inference system.
+Uses two (uses as per the needs) locally running AI model such as **Qwen and Gemma** through a local inference system.
 
 Examples:
 - Coding assistance
@@ -278,3 +278,14 @@ ARIA can therefore choose between local and online intelligence depending on the
 | Persistent memory                   | ❌ Not yet |
 | Web-grounded answers                | ❌ Not yet |
 | Offline Qwen                        | ❌ Not yet |
+
+Local AI Integration ✅
+Gemma 3 1B is now integrated into ARIA as Level 2, with the router successfully directing suitable tasks to the local model. BTW Qwen not yet integrated and will be integrated tomorrow.
+
+That gives ARIA:
+
+Level 1 → Built-in tools
+
+Level 2 → Gemma 3 1B (local/offline) and Qwen 2.5 Coder 7B Instruct (Not Yet Integrated)
+
+Online → Gemini 3.5 Flash-Lite
