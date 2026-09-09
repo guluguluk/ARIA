@@ -1,3 +1,23 @@
+from openai import OpenAI
+
+gemma_client = OpenAI(
+    base_url="http://127.0.0.1:1234/v1",
+    api_key="lm-studio"
+)
+
+def ask_gemma(command):
+    response = gemma_client.chat.completions.create(
+        model="google/gemma-3-1b",
+        messages=[
+            {
+                "role": "user",
+                "content": command
+            }
+        ]
+    )
+
+    return response.choices[0].message.content
+
 import sys
 from google import genai
 
@@ -67,28 +87,31 @@ def process_command(command):
     route = route_command(command)
 
     print(f"[Router] {route}")
+
+    if route == "LEVEL_1":
+        if command == "hello":
+            return "Hello! How can I help you?"
+        
+        if command == "hi":
+            return "Hi there! How can I assist you today?"
+        
+        elif command == "status":
+            return "All systems are operational."
+        
+        elif command == "who are you":
+            return "I am ARIA — Adaptive Responsive Intelligent Assistant."
+        
+        elif command == "who are you?":
+            return "I am ARIA — Adaptive Responsive Intelligent Assistant."
+        
+        elif command in ["exit", "quit"]:
+            return None
     
-    if command == "hello":
-        return "Hello! How can I help you?"
+    elif route == "LEVEL_2":
+        return ask_gemma(command)
 
-    elif command == "hi":
-        return "Hi there! How can I assist you today?"
-
-    elif command == "status":
-        return "All systems are operational."
-
-    elif command == "who are you":
-        return "I am ARIA — Adaptive Responsive Intelligent Assistant."
-
-    elif command == "who are you?":
-        return "I am ARIA — Adaptive Responsive Intelligent Assistant."
-
-    elif command in ["exit", "quit"]:
-        return None
-
-    else:
+    elif route == "LEVEL_3":
         return ask_gemini()
-
 
 def main():
     print("ARIA is online.")
