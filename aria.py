@@ -5,6 +5,24 @@ gemma_client = OpenAI(
     api_key="lm-studio"
 )
 
+qwen_client = OpenAI(
+    base_url="http://127.0.0.1:1234/v1",
+    api_key="lm-studio"
+)
+
+def ask_qwen(command):
+    response = qwen_client.chat.completions.create(
+        model="qwen2.5-coder-7b-instruct",
+        messages=[
+            {
+                "role": "user",
+                "content": command
+            }
+        ]
+    )
+
+    return response.choices[0].message.content
+
 def ask_gemma(command):
     response = gemma_client.chat.completions.create(
         model="google/gemma-3-1b",
@@ -69,17 +87,42 @@ Respond naturally and helpfully.
 def route_command(command):
     command = command.lower().strip()
 
-    if command in ["hello", "hi", "status", "who are you", "who are you?", "exit", "quit"]:
+    if any(phrase in command for phrase in [
+        "hello",
+        "hi",
+        "hey",
+        "how are you",
+        "who are you",
+        "who developed you",
+        "who made you"
+    ]):
         return "LEVEL_1"
 
-    elif any(word in command for word in ["code", "python", "program", "debug"]):
-        return "LEVEL_2"
+    elif any(phrase in command for phrase in [
+    "write code",
+    "write a program",
+    "create a program",
+    "create code",
+    "write a python program",
+    "write python code",
+    "code this",
+    "debug this",
+    "fix this code",
+    "program this"
+]):
+        return "LEVEL_3"
 
-    elif any(word in command for word in ["latest", "today", "current", "news", "weather"]):
+    elif any(word in command for word in [
+        "latest",
+        "today",
+        "current",
+        "news",
+        "weather"
+    ]):
         return "ONLINE"
 
     else:
-        return "LEVEL_3"
+        return "LEVEL_2"
 
 def process_command(command):
     command = command.lower().strip()
@@ -103,14 +146,20 @@ def process_command(command):
         
         elif command == "who are you?":
             return "I am ARIA — Adaptive Responsive Intelligent Assistant."
+
+        elif command in ["who developed you", "who developed you?"]:
+            return "ARIA is being developed by Raghul Sambasivam."
         
         elif command in ["exit", "quit"]:
             return None
-    
+
     elif route == "LEVEL_2":
         return ask_gemma(command)
 
     elif route == "LEVEL_3":
+        return ask_qwen(command)
+
+    elif route == "ONLINE":
         return ask_gemini()
 
 def main():
