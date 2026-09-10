@@ -277,7 +277,7 @@ ARIA can therefore choose between local and online intelligence depending on the
 | Context-aware responses             | ✅         |
 | Persistent memory                   | ❌ Not yet |
 | Web-grounded answers                | ❌ Not yet |
-| Offline Qwen                        | ❌ Not yet |
+| Offline Qwen                        | ✅         |
 
 Local AI Integration ✅
 Gemma 3 1B is now integrated into ARIA as Level 2, with the router successfully directing suitable tasks to the local model. BTW Qwen not yet integrated and will be integrated tomorrow.
@@ -289,3 +289,18 @@ Level 1 → Built-in tools
 Level 2 → Gemma 3 1B (local/offline) and Qwen 2.5 Coder 7B Instruct (Not Yet Integrated)
 
 Online → Gemini 3.5 Flash-Lite
+
+### Current AI Routing
+
+ARIA currently uses a multi-level local AI architecture:
+
+- **Level 1 — ARIA Built-in Tools:** Deterministic commands and system functionality.
+- **Level 2 — Gemma 3 1B:** Lightweight local AI for simple explanations and general tasks.
+- **Level 3 — Qwen 2.5 Coder 7B:** More capable local AI for coding and heavier tasks.
+- **Level 4 — Gemini 3.5 Flash-Lite:** Online AI for tasks requiring cloud-based intelligence.
+- **Level 5 — Gemini 3.6 Flash:** Advanced online reasoning.
+- **Level 6 — Gemini 3.7 Flash:** Highest-capability online reasoning.
+
+Currently implemented levels: **1–3**.
+
+Levels 4–6 are planned for future development.
