@@ -292,15 +292,13 @@ Online → Gemini 3.5 Flash-Lite
 
 ### Current AI Routing
 
-ARIA currently uses a multi-level local AI architecture:
+ARIA currently implements four routing levels:
 
-- **Level 1 — ARIA Built-in Tools:** Deterministic commands and system functionality.
-- **Level 2 — Gemma 3 1B:** Lightweight local AI for simple explanations and general tasks.
+- **Level 1 — ARIA Built-in Tools:** Deterministic commands and functionality.
+- **Level 2 — Gemma 3 1B:** Lightweight local AI.
 - **Level 3 — Qwen 2.5 Coder 7B:** More capable local AI for coding and heavier tasks.
-- **Level 4 — Gemini 3.5 Flash-Lite:** Online AI for tasks requiring cloud-based intelligence.
-- **Level 5 — Gemini 3.6 Flash:** Advanced online reasoning.
-- **Level 6 — Gemini 3.7 Flash:** Highest-capability online reasoning.
+- **Level 4 — Gemini 3.5 Flash-Lite:** Online AI for cloud-based tasks.
 
-Currently implemented levels: **1–3**.
+Levels 1–4 are currently implemented.
 
-Levels 4–6 are planned for future development.
+Levels 5–6 are planned for future development.
