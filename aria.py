@@ -99,17 +99,17 @@ def route_command(command):
         return "LEVEL_1"
 
     elif any(phrase in command for phrase in [
-    "write code",
-    "write a program",
-    "create a program",
-    "create code",
-    "write a python program",
-    "write python code",
-    "code this",
-    "debug this",
-    "fix this code",
-    "program this"
-]):
+        "write code",
+        "write a program",
+        "create a program",
+        "create code",
+        "write a python program",
+        "write python code",
+        "code this",
+        "debug this",
+        "fix this code",
+        "program this"
+    ]):
         return "LEVEL_3"
 
     elif any(word in command for word in [
@@ -119,7 +119,7 @@ def route_command(command):
         "news",
         "weather"
     ]):
-        return "ONLINE"
+        return "LEVEL_4"
 
     else:
         return "LEVEL_2"
@@ -149,6 +149,9 @@ def process_command(command):
 
         elif command in ["who developed you", "who developed you?"]:
             return "ARIA is being developed by Raghul Sambasivam."
+
+        elif command in ["who made you", "who made you?"]:
+            return "ARIA is being developed by Raghul Sambasivam."
         
         elif command in ["exit", "quit"]:
             return None
@@ -159,7 +162,7 @@ def process_command(command):
     elif route == "LEVEL_3":
         return ask_qwen(command)
 
-    elif route == "ONLINE":
+    elif route == "LEVEL_4":
         return ask_gemini()
 
 def main():
