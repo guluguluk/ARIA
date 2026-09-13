@@ -1,4 +1,10 @@
+import sys
 from openai import OpenAI
+from google import genai
+from router import classify_command, validate_route
+
+sys.stdout.reconfigure(encoding="utf-8")
+sys.stdin.reconfigure(encoding="utf-8")
 
 gemma_client = OpenAI(
     base_url="http://127.0.0.1:1234/v1",
@@ -35,12 +41,6 @@ def ask_gemma(command):
     )
 
     return response.choices[0].message.content
-
-import sys
-from google import genai
-
-sys.stdout.reconfigure(encoding="utf-8")
-sys.stdin.reconfigure(encoding="utf-8")
 
 conversation = []
 
@@ -127,7 +127,8 @@ def route_command(command):
 def process_command(command):
     command = command.lower().strip()
 
-    route = route_command(command)
+    route = classify_command(command)
+    route = validate_route(route)
 
     print(f"[Router] {route}")
 

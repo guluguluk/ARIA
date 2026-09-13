@@ -100,10 +100,10 @@ tests = [
     "What is the latest news?"
 ]
 
-for test in tests:
-    route = classify_command(test)
-    route = validate_route(route)
+# for test in tests:
+#     route = classify_command(test)
+#     route = validate_route(route)
 
-    print(test)
-    print(route)
-    print()
+#     print(test)
+#     print(route)
+#     print()
