@@ -1,10 +1,7 @@
-from google import genai
+from models import ask_gemini
 
-client = genai.Client()
+prompt = "Respond stating that you(Gemini) work."
 
-response = client.models.generate_content(
-    model="gemini-3.5-flash-lite",
-    contents="Respond stating that you(Gemini) work."
-)
+response = ask_gemini(prompt)
 
-print(response.text)
+print(response)

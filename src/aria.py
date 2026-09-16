@@ -1,50 +1,13 @@
-from openai import OpenAI
-
-gemma_client = OpenAI(
-    base_url="http://127.0.0.1:1234/v1",
-    api_key="lm-studio"
-)
-
-qwen_client = OpenAI(
-    base_url="http://127.0.0.1:1234/v1",
-    api_key="lm-studio"
-)
-
-def ask_qwen(command):
-    response = qwen_client.chat.completions.create(
-        model="qwen2.5-coder-7b-instruct",
-        messages=[
-            {
-                "role": "user",
-                "content": command
-            }
-        ]
-    )
-
-    return response.choices[0].message.content
-
-def ask_gemma(command):
-    response = gemma_client.chat.completions.create(
-        model="google/gemma-3-1b",
-        messages=[
-            {
-                "role": "user",
-                "content": command
-            }
-        ]
-    )
-
-    return response.choices[0].message.content
-
 import sys
-from google import genai
+
+from models import ask_gemini
+
 
 sys.stdout.reconfigure(encoding="utf-8")
 sys.stdin.reconfigure(encoding="utf-8")
 
 conversation = []
 
-client = genai.Client()
 
 def build_context():
     history = ""
@@ -54,11 +17,12 @@ def build_context():
 
     return history
 
-def ask_gemini():
+
+def build_gemini_prompt():
     history = build_context()
 
     prompt = f"""
-You are ARIA — Adaptive Responsive Intelligent Assistant.
+You are ARIA - Adaptive Responsive Intelligent Assistant.
 
 Identity:
 - ARIA is a personal AI assistant developed by Raghul Sambasivam, a 12th Grader CBSE Student who is excellent at programming.
@@ -77,93 +41,55 @@ Here is the conversation so far:
 Respond naturally and helpfully.
 """
 
-    response = client.models.generate_content(
-        model="gemini-3.5-flash-lite",
-        contents=prompt
-    )
+    return prompt
 
-    return response.text
 
 def route_command(command):
     command = command.lower().strip()
 
-    if any(phrase in command for phrase in [
-        "hello",
-        "hi",
-        "hey",
-        "how are you",
-        "who are you",
-        "who developed you",
-        "who made you"
-    ]):
-        return "LEVEL_1"
+    aria_tool_phrases = []
 
-    elif any(phrase in command for phrase in [
-        "write code",
-        "write a program",
-        "create a program",
-        "create code",
-        "write a python program",
-        "write python code",
-        "code this",
-        "debug this",
-        "fix this code",
-        "program this"
-    ]):
-        return "LEVEL_3"
+    if any(phrase in command for phrase in aria_tool_phrases):
+        return "ARIA_TOOL"
 
-    elif any(word in command for word in [
-        "latest",
-        "today",
-        "current",
-        "news",
-        "weather"
-    ]):
-        return "LEVEL_4"
+    return "GEMINI"
 
-    else:
-        return "LEVEL_2"
 
 def process_command(command):
     command = command.lower().strip()
+
+    if command in ["exit", "quit"]:
+        return None
+
+    if command == "hello":
+        return "Hello! How can I help you?"
+
+    if command == "hi":
+        return "Hi there! How can I assist you today?"
+
+    if command == "status":
+        return "All systems are operational."
+
+    if command in ["who are you", "who are you?"]:
+        return "I am ARIA - Adaptive Responsive Intelligent Assistant."
+
+    if command in ["who developed you", "who developed you?"]:
+        return "ARIA is being developed by Raghul Sambasivam."
+
+    if command in ["who made you", "who made you?"]:
+        return "ARIA is being developed by Raghul Sambasivam."
 
     route = route_command(command)
 
     print(f"[Router] {route}")
 
-    if route == "LEVEL_1":
-        if command == "hello":
-            return "Hello! How can I help you?"
-        
-        if command == "hi":
-            return "Hi there! How can I assist you today?"
-        
-        elif command == "status":
-            return "All systems are operational."
-        
-        elif command == "who are you":
-            return "I am ARIA — Adaptive Responsive Intelligent Assistant."
-        
-        elif command == "who are you?":
-            return "I am ARIA — Adaptive Responsive Intelligent Assistant."
+    if route == "ARIA_TOOL":
+        return "ARIA tool routing is not configured yet."
 
-        elif command in ["who developed you", "who developed you?"]:
-            return "ARIA is being developed by Raghul Sambasivam."
+    prompt = build_gemini_prompt()
+    response = ask_gemini(prompt)
+    return response
 
-        elif command in ["who made you", "who made you?"]:
-            return "ARIA is being developed by Raghul Sambasivam."
-        
-        elif command in ["exit", "quit"]:
-            return None
-
-    elif route == "LEVEL_2":
-        return ask_gemma(command)
-
-    elif route == "LEVEL_3":
-        return ask_qwen(command)
-
-    elif route == "LEVEL_4":
-        return ask_gemini()
 
 def main():
     print("ARIA is online.")
@@ -173,7 +99,6 @@ def main():
     while True:
         cmd1 = input("You: ")
         command = cmd1.lower().strip()
-
 
         # Store what the user said
         conversation.append({
@@ -186,12 +111,12 @@ def main():
         if response is None:
             print("ARIA: Goodbye!")
             break
+
         # Store ARIA's response
         conversation.append({
             "role": "aria",
             "message": response
         })
-
 
         print(f"ARIA: {response}")
 
@@ -200,5 +125,5 @@ if __name__ == "__main__":
     main()
 
 
-#Only for dev
-#print(conversation)
+# Only for dev
+# print(conversation)
