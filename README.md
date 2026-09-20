@@ -85,7 +85,28 @@ The long-term goal is for ARIA to detect connectivity automatically and transiti
                                   └───────────────┘
 ```
 
-The architecture is intentionally modular so that model selection can evolve without coupling ARIA's core logic to a single AI model.
+## 🛠️ Tool System Architecture
+
+ARIA implements a modular, extensible Tool System designed to enable safe system-control capabilities. This system separates tool registration from execution to ensure stability and safety.
+
+### Components
+
+- **Tool Registry (`src/tools/registry.py`)**: Manages tool definitions (name, description, function). It provides validation during registration to reject duplicates, invalid names, or non-callable functions.
+- **Tool Dispatcher (`src/tools/dispatcher.py`)**: Responsible for executing registered tools with validated arguments. It enforces a standardized response format (`success`, `tool`, `result`, `error`) and catches runtime errors safely to prevent system crashes or leakages.
+- **Basic Tools (`src/tools/basic.py`)**: Contains harmless demonstration tools used for testing the architecture:
+  - `get_aria_status`: Returns system operational status.
+  - `get_current_session_info`: Returns safe session metadata.
+  - `echo_tool`: Echoes input text (length-limited).
+  - `calculator_tool`: Safely performs basic math using AST parsing (no `eval()`).
+
+### Safety & Design Guidelines
+
+- **Safety First**: Dangerous operations (shutdown, file deletion, etc.) are currently excluded.
+- **Input Validation**: Tools must validate inputs. `calculator_tool` uses a safe AST-based parser instead of `eval()`.
+- **Error Handling**: The `ToolDispatcher` wraps execution in try-except blocks, ensuring that failures return a structured error result rather than crashing the application.
+- **Extensibility**: New tools can be added easily by defining a function and registering it with the `registry` instance in `src/tools/basic.py` or other modules.
+
+*Note: The Tool System is built for independent testability and is currently being integrated into ARIA's routing logic.*
 
 ## 🤖 Model Routing
 

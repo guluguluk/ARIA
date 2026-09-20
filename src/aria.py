@@ -58,6 +58,9 @@ def process_command(command):
     if command == "status":
         return "All systems are operational."
 
+    if command in ["--version", "version"]:
+        return "ARIA v1.0.0 (Online-first architecture with Google Gemini 3.5 Flash-Lite)"
+
     if command in ["who are you", "who are you?"]:
         return "I am ARIA - Adaptive Responsive Intelligent Assistant."
 
