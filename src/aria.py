@@ -1,5 +1,5 @@
 import sys
-
+from router import route_command
 from models import ask_gemini
 
 
@@ -42,18 +42,6 @@ Respond naturally and helpfully.
 """
 
     return prompt
-
-
-def route_command(command):
-    command = command.lower().strip()
-
-    aria_tool_phrases = []
-
-    if any(phrase in command for phrase in aria_tool_phrases):
-        return "ARIA_TOOL"
-
-    return "GEMINI"
-
 
 def process_command(command):
     command = command.lower().strip()
