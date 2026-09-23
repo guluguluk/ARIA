@@ -6,6 +6,8 @@ ARIA is a personal AI assistant designed to make everyday computer use easier th
 
 The project is being developed from the ground up with a focus on **online-first operation**, while retaining local AI capabilities for situations where an internet connection is unavailable.
 
+**The main branch of this repo will feature the latest stable release other new branches will be named by their own version with name...
+
 ## 🚀 Vision
 
 ARIA aims to become a personal computer assistant capable of:
