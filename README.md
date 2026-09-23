@@ -180,9 +180,21 @@ A major design principle is that **normal online conversation should not be unne
 
 ## 🧠 Memory Architecture
 
-ARIA currently supports **session conversation memory**.
+ARIA supports session conversation memory and explicit permanent memories stored
+locally in SQLite.
 
 Conversation context is stored by ARIA and can be sent to the selected AI backend when required.
+
+Permanent memory is owned by ARIA Core and is not automatically added to normal
+conversation prompts. The terminal supports these explicit commands:
+
+- `remember that <key> is <content>`
+- `what do you remember about <key>`
+- `what do you remember`
+- `forget <key>`
+
+The permanent-memory database path can be configured by ARIA Core. Normal
+conversation is never saved automatically.
 
 The long-term design separates memory from individual models so that changing the active Gemini model does not mean losing ARIA's conversation context.
 
@@ -224,7 +236,7 @@ Current and planned development areas include:
 - [ ] Reliable online/offline mode switching
 - [ ] Web-grounded answers
 - [ ] Tool-calling architecture
-- [ ] Persistent memory
+- [x] Persistent memory
 - [ ] Voice input
 - [ ] Voice output
 - [ ] Application control

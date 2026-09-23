@@ -1,12 +1,68 @@
 import sys
+import re
 from router import route_command
 from models import ask_gemini
+from memory import MemoryStore
 
 
 sys.stdout.reconfigure(encoding="utf-8")
 sys.stdin.reconfigure(encoding="utf-8")
 
 conversation = []
+memory_store = None
+
+
+def initialize_memory(db_path=None):
+    """Initialize ARIA's permanent memory store with an optional database path."""
+    global memory_store
+    memory_store = MemoryStore(db_path=db_path)
+    return memory_store
+
+
+def _get_memory_store():
+    if memory_store is None:
+        return initialize_memory()
+    return memory_store
+
+
+def _handle_memory_command(command, store):
+    """Handle only explicit, fully-formed permanent-memory commands."""
+    remember_match = re.fullmatch(
+        r"remember that\s+(.+?)\s+is\s+(.+)", command, re.IGNORECASE
+    )
+    if remember_match:
+        key = remember_match.group(1).strip().casefold()
+        content = remember_match.group(2).strip()
+        if key and content:
+            store.store_memory(key, content)
+            return "I'll remember that."
+
+    retrieve_match = re.fullmatch(
+        r"what do you remember about\s+(.+?)[?]?", command, re.IGNORECASE
+    )
+    if retrieve_match:
+        key = retrieve_match.group(1).strip().casefold()
+        content = store.get_memory(key)
+        if content is None:
+            return f"I don't remember anything about {key}."
+        return f"I remember that {key} is {content}."
+
+    if re.fullmatch(r"what do you remember[?]?", command, re.IGNORECASE):
+        memories = store.list_memories()
+        if not memories:
+            return "I don't have any stored memories."
+        lines = ["I remember:"]
+        lines.extend(f"- {key}: {content}" for key, content in memories.items())
+        return "\n".join(lines)
+
+    forget_match = re.fullmatch(r"forget\s+(.+?)[?]?", command, re.IGNORECASE)
+    if forget_match:
+        key = forget_match.group(1).strip().casefold()
+        if store.delete_memory(key):
+            return "I forgot that memory."
+        return f"I don't have a memory for {key}."
+
+    return None
 
 
 def build_context():
@@ -43,34 +99,40 @@ Respond naturally and helpfully.
 
     return prompt
 
-def process_command(command):
-    command = command.lower().strip()
+def process_command(command, store=None):
+    command = command.strip()
+    normalized_command = command.casefold()
+    active_store = store or _get_memory_store()
 
-    if command in ["exit", "quit"]:
+    if normalized_command in ["exit", "quit"]:
         return None
 
-    if command == "hello":
+    memory_response = _handle_memory_command(command, active_store)
+    if memory_response is not None:
+        return memory_response
+
+    if normalized_command == "hello":
         return "Hello! How can I help you?"
 
-    if command == "hi":
+    if normalized_command == "hi":
         return "Hi there! How can I assist you today?"
 
-    if command == "status":
+    if normalized_command == "status":
         return "All systems are operational."
 
-    if command in ["--version", "version"]:
+    if normalized_command in ["--version", "version"]:
         return "ARIA v1.0.0 (Online-first architecture with Google Gemini 3.5 Flash-Lite)"
 
-    if command in ["who are you", "who are you?"]:
+    if normalized_command in ["who are you", "who are you?"]:
         return "I am ARIA - Adaptive Responsive Intelligent Assistant."
 
-    if command in ["who developed you", "who developed you?"]:
+    if normalized_command in ["who developed you", "who developed you?"]:
         return "ARIA is being developed by Raghul Sambasivam."
 
-    if command in ["who made you", "who made you?"]:
+    if normalized_command in ["who made you", "who made you?"]:
         return "ARIA is being developed by Raghul Sambasivam."
 
-    route = route_command(command)
+    route = route_command(normalized_command)
 
     print(f"[Router] {route}")
 
@@ -83,13 +145,14 @@ def process_command(command):
 
 
 def main():
+    initialize_memory()
     print("ARIA is online.")
     print("Adaptive Responsive Intelligent Assistant")
     print()
 
     while True:
         cmd1 = input("You: ")
-        command = cmd1.lower().strip()
+        command = cmd1.strip()
 
         # Store what the user said
         conversation.append({

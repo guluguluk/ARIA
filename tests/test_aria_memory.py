@@ -1,0 +1,77 @@
+"""Integration tests for ARIA Core permanent-memory commands."""
+
+import sys
+import tempfile
+import unittest
+import gc
+from pathlib import Path
+from unittest.mock import patch
+
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
+
+import aria
+from memory import MemoryStore
+
+
+class TestAriaMemoryCommands(unittest.TestCase):
+    def setUp(self):
+        self.temp_dir = tempfile.TemporaryDirectory()
+        db_path = str(Path(self.temp_dir.name) / "test_aria_memory.db")
+        self.store = MemoryStore(db_path=db_path)
+
+    def tearDown(self):
+        del self.store
+        gc.collect()
+        self.temp_dir.cleanup()
+
+    def test_remember_command_stores_memory(self):
+        response = aria.process_command(
+            "remember that my favorite game is RDR2", self.store
+        )
+
+        self.assertEqual(response, "I'll remember that.")
+        self.assertEqual(self.store.get_memory("my favorite game"), "RDR2")
+
+    def test_retrieve_command_returns_stored_memory(self):
+        self.store.store_memory("my favorite game", "RDR2")
+
+        response = aria.process_command(
+            "what do you remember about my favorite game?", self.store
+        )
+
+        self.assertEqual(response, "I remember that my favorite game is RDR2.")
+
+    def test_forget_command_removes_memory(self):
+        self.store.store_memory("my favorite game", "RDR2")
+
+        response = aria.process_command("forget my favorite game", self.store)
+
+        self.assertEqual(response, "I forgot that memory.")
+        self.assertIsNone(self.store.get_memory("my favorite game"))
+
+    def test_list_command_returns_stored_memories(self):
+        self.store.store_memory("favorite color", "blue")
+
+        response = aria.process_command("what do you remember", self.store)
+
+        self.assertEqual(response, "I remember:\n- favorite color: blue")
+
+    @patch("aria.ask_gemini", return_value="Quantum entanglement explained.")
+    def test_normal_conversation_does_not_store_memory(self, _mock_ask_gemini):
+        response = aria.process_command("Explain quantum entanglement.", self.store)
+
+        self.assertEqual(response, "Quantum entanglement explained.")
+        self.assertEqual(self.store.list_memories(), {})
+
+    @patch("aria.ask_gemini", return_value="That is not an explicit memory command.")
+    def test_ambiguous_commands_do_not_modify_memory(self, _mock_ask_gemini):
+        response = aria.process_command(
+            "Please remember my favorite game is RDR2", self.store
+        )
+
+        self.assertEqual(response, "That is not an explicit memory command.")
+        self.assertEqual(self.store.list_memories(), {})
+
+
+if __name__ == "__main__":
+    unittest.main()
