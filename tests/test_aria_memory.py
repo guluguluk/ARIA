@@ -41,6 +41,60 @@ class TestAriaMemoryCommands(unittest.TestCase):
 
         self.assertEqual(response, "I remember that my favorite game is RDR2.")
 
+    def test_retrieve_exact_underscore_key(self):
+        self.store.store_memory("favorite_game", "RDR2")
+
+        response = aria.process_command(
+            "what do you remember about favorite_game", self.store
+        )
+
+        self.assertEqual(response, "I remember that favorite_game is RDR2.")
+
+    def test_retrieve_space_and_underscore_equivalents(self):
+        self.store.store_memory("favorite_game", "RDR2")
+
+        response = aria.process_command(
+            "what do you remember about favorite game", self.store
+        )
+
+        self.assertEqual(response, "I remember that favorite game is RDR2.")
+
+    def test_retrieve_without_my_prefix(self):
+        self.store.store_memory("favorite_game", "RDR2")
+
+        response = aria.process_command(
+            "what do you remember about my favorite game?", self.store
+        )
+
+        self.assertEqual(response, "I remember that my favorite game is RDR2.")
+
+    def test_retrieve_key_is_case_insensitive(self):
+        self.store.store_memory("favorite_game", "RDR2")
+
+        response = aria.process_command(
+            "WHAT DO YOU REMEMBER ABOUT FAVORITE GAME?", self.store
+        )
+
+        self.assertEqual(response, "I remember that favorite game is RDR2.")
+
+    def test_unrelated_keys_remain_separate(self):
+        self.store.store_memory("favorite_game", "RDR2")
+        self.store.store_memory("favorite_color", "blue")
+
+        response = aria.process_command(
+            "what do you remember about favorite color", self.store
+        )
+
+        self.assertEqual(response, "I remember that favorite color is blue.")
+
+    def test_forget_uses_key_equivalents(self):
+        self.store.store_memory("favorite_game", "RDR2")
+
+        response = aria.process_command("forget my favorite game", self.store)
+
+        self.assertEqual(response, "I forgot that memory.")
+        self.assertIsNone(self.store.get_memory("favorite_game"))
+
     def test_forget_command_removes_memory(self):
         self.store.store_memory("my favorite game", "RDR2")
 
