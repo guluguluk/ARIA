@@ -2,6 +2,35 @@
 
 Development history for ARIA, organized by version.
 
+## v1.0.2 - ARIA-Genesis-Prime
+
+### New Features
+
+- Added canonical memory-key normalization for equivalent forms such as `favorite_game`, `favorite game`, and `my favorite game`.
+- Improved explicit permanent-memory command handling for retrieval, deletion, and update flows.
+
+### Bug Fixes
+
+- Fixed inconsistent memory-key lookups between storage and retrieval paths.
+- Fixed equivalent-key deletion behavior so `forget my favorite game` resolves the same canonical key as `favorite_game`.
+- Improved malformed command handling so invalid memory commands return deterministic local responses instead of falling through unexpectedly.
+
+### Architecture Changes
+
+- Centralized memory-key normalization logic to keep storage, retrieval, and deletion behavior consistent.
+- Kept memory ownership within ARIA Core and did not broaden the system beyond explicit user-controlled memory actions.
+
+### Important Improvements
+
+- Strengthened memory reliability for repeated keys and equivalent key variants.
+- Improved user-facing memory command UX by handling malformed inputs more predictably.
+
+### Testing and Validation
+
+- Added memory-key normalization regression tests.
+- Added tests for memory update behavior and malformed memory-command handling.
+- Verified the complete project test suite remained passing.
+
 ## v1.0.1 - ARIA-Genesis-Prime
 
 ### New Features
