@@ -59,6 +59,15 @@ def _handle_memory_command(command, store):
             store.store_memory(key, content)
             return "I'll remember that."
 
+    if re.fullmatch(r"remember(?:\s+that)?", command, re.IGNORECASE):
+        return "Please use: remember that <key> is <content>."
+
+    if re.fullmatch(r"remember\s+that\s+.+\s+is\s*", command, re.IGNORECASE):
+        return "Please provide memory content after 'is'."
+
+    if re.fullmatch(r"remember\s+that\s+.+", command, re.IGNORECASE):
+        return "Please use: remember that <key> is <content>."
+
     retrieve_match = re.fullmatch(
         r"what do you remember about\s+(.+?)[?]?", command, re.IGNORECASE
     )
@@ -73,12 +82,17 @@ def _handle_memory_command(command, store):
             return f"I don't remember anything about {key}."
         return f"I remember that {key} is {content}."
 
+    if re.fullmatch(r"what do you remember about", command, re.IGNORECASE):
+        return "Please provide a memory key after 'about'."
+
     if re.fullmatch(r"what do you remember[?]?", command, re.IGNORECASE):
         memories = store.list_memories()
         if not memories:
             return "I don't have any stored memories."
         lines = ["I remember:"]
-        lines.extend(f"- {key}: {content}" for key, content in memories.items())
+        lines.extend(
+            f"- {key}: {content}" for key, content in sorted(memories.items())
+        )
         return "\n".join(lines)
 
     forget_match = re.fullmatch(r"forget\s+(.+?)[?]?", command, re.IGNORECASE)
@@ -88,6 +102,9 @@ def _handle_memory_command(command, store):
             if store.delete_memory(candidate):
                 return "I forgot that memory."
         return f"I don't have a memory for {key}."
+
+    if re.fullmatch(r"forget", command, re.IGNORECASE):
+        return "Please provide a memory key after 'forget'."
 
     return None
 

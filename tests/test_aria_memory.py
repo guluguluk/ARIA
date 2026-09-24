@@ -32,6 +32,16 @@ class TestAriaMemoryCommands(unittest.TestCase):
         self.assertEqual(response, "I'll remember that.")
         self.assertEqual(self.store.get_memory("my favorite game"), "RDR2")
 
+    def test_remember_command_updates_existing_key(self):
+        aria.process_command("remember that favorite_game is RDR2", self.store)
+
+        response = aria.process_command(
+            "remember that favorite_game is Minecraft", self.store
+        )
+
+        self.assertEqual(response, "I'll remember that.")
+        self.assertEqual(self.store.list_memories(), {"favorite_game": "Minecraft"})
+
     def test_retrieve_command_returns_stored_memory(self):
         self.store.store_memory("my favorite game", "RDR2")
 
@@ -103,12 +113,49 @@ class TestAriaMemoryCommands(unittest.TestCase):
         self.assertEqual(response, "I forgot that memory.")
         self.assertIsNone(self.store.get_memory("my favorite game"))
 
+    def test_forget_equivalent_key_form(self):
+        self.store.store_memory("favorite_game", "RDR2")
+
+        response = aria.process_command("forget my favorite game", self.store)
+
+        self.assertEqual(response, "I forgot that memory.")
+        self.assertEqual(self.store.list_memories(), {})
+
+    def test_forget_missing_memory_is_clear(self):
+        response = aria.process_command("forget unknown_key", self.store)
+
+        self.assertEqual(response, "I don't have a memory for unknown_key.")
+
     def test_list_command_returns_stored_memories(self):
-        self.store.store_memory("favorite color", "blue")
+        self.store.store_memory("favorite_language", "Python")
+        self.store.store_memory("favorite_game", "RDR2")
 
         response = aria.process_command("what do you remember", self.store)
 
-        self.assertEqual(response, "I remember:\n- favorite color: blue")
+        self.assertEqual(
+            response,
+            "I remember:\n- favorite_game: RDR2\n- favorite_language: Python",
+        )
+
+    def test_malformed_remember_commands_are_deterministic(self):
+        self.assertEqual(
+            aria.process_command("remember", self.store),
+            "Please use: remember that <key> is <content>.",
+        )
+        self.assertEqual(
+            aria.process_command("remember that", self.store),
+            "Please use: remember that <key> is <content>.",
+        )
+        self.assertEqual(
+            aria.process_command("remember that favorite_game is", self.store),
+            "Please provide memory content after 'is'.",
+        )
+
+    def test_malformed_forget_command_is_deterministic(self):
+        self.assertEqual(
+            aria.process_command("forget", self.store),
+            "Please provide a memory key after 'forget'.",
+        )
 
     @patch("aria.ask_gemini", return_value="Quantum entanglement explained.")
     def test_normal_conversation_does_not_store_memory(self, _mock_ask_gemini):
@@ -124,6 +171,15 @@ class TestAriaMemoryCommands(unittest.TestCase):
         )
 
         self.assertEqual(response, "That is not an explicit memory command.")
+        self.assertEqual(self.store.list_memories(), {})
+
+    @patch("aria.ask_gemini", return_value="Quantum entanglement explained.")
+    def test_normal_remember_sentence_does_not_modify_memory(self, _mock_ask_gemini):
+        response = aria.process_command(
+            "Please remember to explain quantum entanglement later.", self.store
+        )
+
+        self.assertEqual(response, "Quantum entanglement explained.")
         self.assertEqual(self.store.list_memories(), {})
 
 
