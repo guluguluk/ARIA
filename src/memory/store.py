@@ -5,8 +5,18 @@ Enables local persistent storage of preferences, facts, and notes.
 
 import sqlite3
 import os
+import re
 from typing import Dict, Optional, Any
 from pathlib import Path
+
+
+def canonicalize_memory_key(key: str) -> str:
+    """Return the canonical representation used by all memory operations."""
+    canonical_key = re.sub(r"[_\s]+", " ", key.strip().casefold())
+    if canonical_key.startswith("my "):
+        canonical_key = canonical_key[3:]
+    return canonical_key
+
 
 class MemoryStore:
     def __init__(self, db_path: Optional[str] = None):

@@ -2,7 +2,7 @@ import sys
 import re
 from router import route_command
 from models import ask_gemini
-from memory import MemoryStore
+from memory import MemoryStore, canonicalize_memory_key
 
 
 sys.stdout.reconfigure(encoding="utf-8")
