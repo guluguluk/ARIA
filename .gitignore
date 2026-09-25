@@ -1,5 +1,11 @@
 .env
+
 # ARIA local databases
 *.db
 *.sqlite
 *.sqlite3
+
+# Python cache / bytecode
+__pycache__/
+*.py[cod]
+*$py.class
