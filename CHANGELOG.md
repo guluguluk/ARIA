@@ -2,6 +2,19 @@
 
 Development history for ARIA, organized by version.
 
+## v1.0.3 - ARIA-Genesis-Prime
+
+### Reliability Improvements
+
+- Added controlled handling for temporary Gemini API failures with HTTP status codes 408, 429, 500, 502, 503, and 504.
+- Kept ARIA's command session available after handled Gemini failures without exposing SDK error details to the user.
+- Preserved normal Gemini responses and allowed non-temporary API errors to remain visible during development.
+
+### Testing and Validation
+
+- Added mocked Gemini API tests for successful responses, service unavailability, rate limiting, and non-temporary API errors.
+- Added tests verifying safe failure responses and continued command processing after a Gemini failure.
+
 ## v1.0.2 - ARIA-Genesis-Prime
 
 ### New Features
