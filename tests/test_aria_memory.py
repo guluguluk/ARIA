@@ -4,10 +4,14 @@ import sys
 import tempfile
 import unittest
 import gc
+import io
+from contextlib import redirect_stdout
 from pathlib import Path
 from unittest.mock import patch
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
+
+from google.genai.errors import ServerError
 
 import aria
 from memory import MemoryStore
@@ -163,6 +167,53 @@ class TestAriaMemoryCommands(unittest.TestCase):
 
         self.assertEqual(response, "Quantum entanglement explained.")
         self.assertEqual(self.store.list_memories(), {})
+
+    @patch("models.client.models.generate_content")
+    def test_gemini_failure_returns_safe_response(self, generate_content):
+        generate_content.side_effect = ServerError(
+            503,
+            {
+                "error": {
+                    "message": "high demand at C:\\private\\path; API key=secret",
+                    "status": "UNAVAILABLE",
+                }
+            },
+        )
+
+        response = aria.process_command("Explain quantum entanglement.", self.store)
+
+        self.assertEqual(
+            response,
+            "Gemini is temporarily unavailable right now. Please try again.",
+        )
+        self.assertNotIn("Traceback", response)
+        self.assertNotIn("secret", response)
+        self.assertNotIn("C:\\private\\path", response)
+
+    @patch("models.client.models.generate_content")
+    @patch("aria.initialize_memory")
+    @patch("builtins.input", side_effect=["Explain quantum entanglement.", "status", "exit"])
+    def test_main_continues_after_gemini_failure(
+        self, _mock_input, _mock_initialize_memory, generate_content
+    ):
+        generate_content.side_effect = ServerError(
+            503,
+            {"error": {"message": "internal SDK details", "status": "UNAVAILABLE"}},
+        )
+        output = io.StringIO()
+        conversation_length = len(aria.conversation)
+        self.addCleanup(aria.conversation.__delitem__, slice(conversation_length, None))
+
+        with redirect_stdout(output):
+            aria.main()
+
+        displayed = output.getvalue()
+        self.assertIn("Gemini is temporarily unavailable right now.", displayed)
+        self.assertIn("All systems are operational.", displayed)
+        self.assertIn("Goodbye!", displayed)
+        self.assertNotIn("Traceback", displayed)
+        self.assertNotIn("internal SDK details", displayed)
+        generate_content.assert_called_once()
 
     @patch("aria.ask_gemini", return_value="That is not an explicit memory command.")
     def test_ambiguous_commands_do_not_modify_memory(self, _mock_ask_gemini):

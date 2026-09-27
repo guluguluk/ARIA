@@ -2,6 +2,13 @@ import os
 from pathlib import Path
 
 from google import genai
+from google.genai.errors import APIError
+
+
+TEMPORARY_GEMINI_ERROR_RESPONSE = (
+    "Gemini is temporarily unavailable right now. Please try again."
+)
+TEMPORARY_GEMINI_STATUS_CODES = {408, 429, 500, 502, 503, 504}
 
 
 def load_env_file():
@@ -31,9 +38,14 @@ client = genai.Client(api_key=api_key)
 
 
 def ask_gemini(prompt):
-    response = client.models.generate_content(
-        model="gemini-3.5-flash-lite",
-        contents=prompt
-    )
+    try:
+        response = client.models.generate_content(
+            model="gemini-3.5-flash-lite",
+            contents=prompt
+        )
+    except APIError as error:
+        if error.code in TEMPORARY_GEMINI_STATUS_CODES:
+            return TEMPORARY_GEMINI_ERROR_RESPONSE
+        raise
 
     return response.text
