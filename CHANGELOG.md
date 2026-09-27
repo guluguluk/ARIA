@@ -2,6 +2,39 @@
 
 Development history for ARIA, organized by version.
 
+## v1.0.4 - ARIA-Genesis-Prime (2026-09-27)
+
+### Memory Retrieval and Context
+
+- Hardened deterministic memory retrieval with canonical key matching, longest-match handling for overlapping keys, and stable result ordering.
+- Added a standalone context builder that consumes structured retrieval results and treats memory contents as reference data, not instructions.
+- Bounded generated memory context to five entries and 4,096 characters; kept it separate from Gemini integration.
+
+### Testing and Validation
+
+- Added retrieval and context-builder tests for canonicalization, overlap, limits, ordering, live store changes, failures, formatting, and data handling.
+
+## v1.0.3 - ARIA-Genesis-Prime
+
+### Reliability Improvements
+
+- Added controlled handling for temporary Gemini API failures with HTTP status codes 408, 429, 500, 502, 503, and 504.
+- Kept ARIA's command session available after handled Gemini failures without exposing SDK error details to the user.
+- Preserved normal Gemini responses and allowed non-temporary API errors to remain visible during development.
+
+### Memory Retrieval
+
+- Added an independent deterministic retrieval API using canonicalized, complete memory-key phrase matching.
+- Bounded retrieval to five results and ordered matches deterministically.
+- Returned structured results that distinguish an empty match from a retrieval failure without exposing database error details.
+- Kept retrieval separate from Gemini; retrieved memories are not added to Gemini requests.
+
+### Testing and Validation
+
+- Added mocked Gemini API tests for successful responses, service unavailability, rate limiting, and non-temporary API errors.
+- Added tests verifying safe failure responses and continued command processing after a Gemini failure.
+- Added memory retrieval tests for key matching, canonicalization, result limits, deterministic ordering, current store updates and deletions, empty stores, and database failures.
+
 ## v1.0.2 - ARIA-Genesis-Prime
 
 ### New Features
