@@ -2,6 +2,18 @@
 
 Development history for ARIA, organized by version.
 
+## v1.0.4 - ARIA-Genesis-Prime (2026-09-27)
+
+### Memory Retrieval and Context
+
+- Hardened deterministic memory retrieval with canonical key matching, longest-match handling for overlapping keys, and stable result ordering.
+- Added a standalone context builder that consumes structured retrieval results and treats memory contents as reference data, not instructions.
+- Bounded generated memory context to five entries and 4,096 characters; kept it separate from Gemini integration.
+
+### Testing and Validation
+
+- Added retrieval and context-builder tests for canonicalization, overlap, limits, ordering, live store changes, failures, formatting, and data handling.
+
 ## v1.0.3 - ARIA-Genesis-Prime
 
 ### Reliability Improvements
