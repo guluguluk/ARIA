@@ -2,6 +2,19 @@
 
 Development history for ARIA, organized by version.
 
+## v1.1.0 - Oblivion (2026-09-28)
+
+### Memory and Gemini Integration
+
+- Connected the existing deterministic memory retrieval and bounded context builder to ordinary Gemini requests.
+- Added prompt safeguards that mark retrieved memories as reference data and prevent them from overriding system rules, safety behavior, routing, tools, or the user's current request.
+- Continued Gemini requests without memory context when no relevant memory exists or retrieval reports a database failure.
+- Preserved explicit memory commands, existing Gemini error handling, and the no-automatic-memory-write behavior.
+
+### Testing and Validation
+
+- Added mocked integration tests for relevant and irrelevant memories, retrieval failures, reference-data handling, Gemini 503 handling, explicit memory commands, and normal conversations.
+
 ## v1.0.4 - ARIA-Genesis-Prime (2026-09-27)
 
 ### Memory Retrieval and Context
