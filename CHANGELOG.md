@@ -2,6 +2,12 @@
 
 Development history for ARIA, organized by version.
 
+## v1.1.1 - Oblivion (2026-09-29)
+
+### Memory Reliability and Safety
+
+- Added memory-to-Gemini integration tests for instruction-like and malformed stored content, bounded truncation, empty-store behavior, and separation of conversation history from persistent memory.
+
 ## v1.1.0 - Oblivion (2026-09-28)
 
 ### Memory and Gemini Integration
