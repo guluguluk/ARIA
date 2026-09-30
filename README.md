@@ -306,6 +306,26 @@ ARIA uses environment variables for API credentials.
 
 The local `.env` file is excluded from version control and should **never** be committed to the repository.
 
+## 🌐 Local Web Chat
+
+The browser chat and Python API run from the same local origin. The web server binds to `127.0.0.1` and does not expose Gemini credentials to browser code.
+
+Install the declared Python dependencies once:
+
+```powershell
+python -m pip install -r requirements.txt
+```
+
+Run the local web server from the repository root:
+
+```powershell
+python -m uvicorn web_api:app --app-dir src --host 127.0.0.1 --port 8000
+```
+
+Open `http://127.0.0.1:8000` in a browser. The health indicator and static UI remain available if Gemini is not configured; chat requests then show a safe configuration error. Configure `GEMINI_API_KEY` in the backend's local environment before using Gemini. Never enter or send the key through the browser.
+
+The API uses `aria.process_command()` and the existing ARIA memory and Gemini flow. Conversation history is one in-memory conversation shared by browser requests handled by this server process, not isolated multi-user sessions. Do not run the terminal conversation and web server against the same core at the same time. Restarting the server clears conversation history; permanent memories remain in the existing local SQLite store.
+
 ## 📜 License
 
 ARIA is released under the **GNU Affero General Public License v3.0 (AGPL-3.0)**.
