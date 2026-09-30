@@ -2,6 +2,20 @@
 
 Development history for ARIA, organized by version.
 
+## v2.0.0 - Horizon (2026-09-30)
+
+### Web Interface Prototype
+
+- Added a responsive, accessible browser-only chat interface with a local prototype status, message bubbles, prompt suggestions, and a multiline composer.
+- Added local loading, input-validation, and error states without connecting the browser to Gemini or exposing credentials.
+
+### Local Web Backend
+
+- Added a loopback-only FastAPI service that serves the browser UI and delegates chat requests to the existing ARIA core.
+- Added request validation, sanitized configuration/Gemini error responses, and serialized updates to the single in-memory conversation.
+- Connected the UI to the same-origin API and documented local setup and the single-conversation limitation.
+- Added mocked API tests for validation, missing configuration, exit-command protection, Gemini failures, and concurrent turns.
+
 ## v1.1.1 - Oblivion (2026-09-29)
 
 ### Memory Reliability and Safety

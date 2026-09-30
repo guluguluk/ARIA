@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#eef2ed">
+    <title>ARIA | Chat</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="app.js" defer></script>
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="topbar">
+        <a class="brand" href="#conversation" aria-label="ARIA home">
+          <span class="brand-mark" aria-hidden="true"><span></span><span></span><span></span></span>
+          <span class="brand-copy">
+            <span class="brand-name">ARIA</span>
+            <span class="brand-subtitle">Adaptive Responsive Intelligent Assistant</span>
+          </span>
+        </a>
+        <div class="connection-state is-offline" id="connection-state" role="status" aria-live="polite">
+          <span class="status-dot" aria-hidden="true"></span>
+          <span class="connection-label">Connecting to local ARIA</span>
+        </div>
+      </header>
+
+      <main class="workspace" id="conversation">
+        <section class="conversation" aria-label="Conversation">
+          <div class="message-list" id="message-list" aria-live="polite" aria-relevant="additions">
+            <div class="welcome-block" id="welcome-block">
+              <p class="eyebrow"><span class="eyebrow-line"></span> A thoughtful assistant</p>
+              <h1>Where should we<br><em>begin?</em></h1>
+              <p class="welcome-copy">Good questions, half-formed ideas, and tricky problems all belong here.</p>
+              <div class="suggestions" aria-label="Suggested prompts">
+                <button class="suggestion" type="button" data-prompt="Help me make sense of a complicated idea">
+                  <span class="suggestion-index">01</span>
+                  <span>Unpack an idea</span>
+                  <span class="suggestion-arrow" aria-hidden="true">↗</span>
+                </button>
+                <button class="suggestion" type="button" data-prompt="Help me plan a project one step at a time">
+                  <span class="suggestion-index">02</span>
+                  <span>Shape a plan</span>
+                  <span class="suggestion-arrow" aria-hidden="true">↗</span>
+                </button>
+                <button class="suggestion" type="button" data-prompt="Give me a fresh perspective on a problem">
+                  <span class="suggestion-index">03</span>
+                  <span>Find a new angle</span>
+                  <span class="suggestion-arrow" aria-hidden="true">↗</span>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div class="composer-wrap">
+            <p class="compose-error" id="compose-error" role="alert" hidden></p>
+            <form class="composer" id="composer" novalidate>
+              <label class="visually-hidden" for="message-input">Message ARIA</label>
+              <textarea
+                id="message-input"
+                name="message"
+                rows="1"
+                maxlength="4000"
+                placeholder="Message ARIA..."
+                aria-describedby="compose-error"
+                required
+              ></textarea>
+              <button class="send-button" id="send-button" type="submit" aria-label="Send message">
+                <span>Send</span>
+                <span class="send-arrow" aria-hidden="true">↑</span>
+              </button>
+            </form>
+            <div class="composer-meta">
+              <span>Single local conversation</span>
+              <span class="character-count" id="character-count">0 / 4000</span>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+  </body>
+</html>
