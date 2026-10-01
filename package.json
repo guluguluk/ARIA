@@ -1,0 +1,15 @@
+{
+  "name": "aria-web-ui",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build:web-vendor": "node scripts/build_web_vendor.mjs",
+    "test:web": "node --test tests/test_web_ui.mjs tests/test_web_rendering.mjs"
+  },
+  "devDependencies": {
+    "dompurify": "3.4.16",
+    "katex": "0.18.10",
+    "markdown-it": "15.0.2",
+    "markdown-it-texmath": "1.0.0"
+  }
+}

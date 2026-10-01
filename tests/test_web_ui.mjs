@@ -13,6 +13,7 @@ class FakeElement {
     this.style = {};
     this.className = "";
     this.textContent = "";
+    this.innerHTML = "";
     this.value = "";
     this.disabled = false;
     this.hidden = false;
@@ -87,7 +88,7 @@ function deferred() {
   return { promise, resolve, reject };
 }
 
-function createUi(chatFetch) {
+function createUi(chatFetch, rendererAssets = {}) {
   const selectors = [
     "#composer",
     "#message-input",
@@ -117,7 +118,7 @@ function createUi(chatFetch) {
     chatRequestCount += 1;
     return chatFetch(url, options);
   };
-  const context = vm.createContext({ document, fetch });
+  const context = vm.createContext({ document, fetch, ...rendererAssets });
   vm.runInContext(appSource, context, { filename: "web/app.js" });
 
   return {
@@ -136,6 +137,12 @@ function createUi(chatFetch) {
         .filter((message) => message.className.includes("assistant")
           && !message.className.includes("typing-message"))
         .map((message) => message.children[1].children[1].textContent);
+    },
+    assistantContent() {
+      return elements.get("#message-list").children
+        .filter((message) => message.className.includes("assistant")
+          && !message.className.includes("typing-message"))
+        .map((message) => message.children[1].children[1]);
     },
   };
 }
@@ -193,4 +200,122 @@ test("form submissions during an active request do not start duplicates", async 
 
   assert.equal(ui.typingMessages().length, 0);
   assert.equal(ui.chatRequestCount, 1);
+});
+
+test("renderer assets unavailable falls back to textContent", async () => {
+  const reply = "**literal Markdown** and \\(x\\)";
+  const ui = createUi(async () => ({ ok: true, json: async () => ({ reply }) }));
+
+  await ui.context.sendMessage("Renderer failed to load");
+
+  const [content] = ui.assistantContent();
+  assert.equal(content.textContent, reply);
+  assert.equal(content.innerHTML, "");
+});
+
+test("assistant markup is inserted only after DOMPurify sanitizes it", async () => {
+  let parserOptions;
+  let imageRule;
+  let mathOptions;
+  let sanitizerInput;
+  let sanitizerOptions;
+  const mathPlugin = () => {};
+  const rendererAssets = {
+    markdownit(options) {
+      parserOptions = options;
+      return {
+        renderer: { rules: {} },
+        utils: { escapeHtml: (text) => text.replaceAll("<", "&lt;") },
+        disable(rule) {
+          assert.notEqual(rule, "image");
+        },
+        use(plugin, options) {
+          assert.equal(plugin, mathPlugin);
+          mathOptions = options;
+        },
+        render() {
+          imageRule = this.renderer.rules.image;
+          return "<h2>response</h2><script>unsafe()</script>";
+        },
+      };
+    },
+    texmath: mathPlugin,
+    katex: { renderToString() {} },
+    DOMPurify: {
+      sanitize(html, options) {
+        sanitizerInput = html;
+        sanitizerOptions = options;
+        return "<h2>sanitized response</h2>";
+      },
+    },
+  };
+  const ui = createUi(
+    async () => ({ ok: true, json: async () => ({ reply: "**response**" }) }),
+    rendererAssets,
+  );
+
+  await ui.context.sendMessage("Render response");
+
+  const [content] = ui.assistantContent();
+  assert.equal(content.innerHTML, "<h2>sanitized response</h2>");
+  assert.equal(content.textContent, "");
+  assert.equal(parserOptions.html, false);
+  assert.equal(parserOptions.breaks, true);
+  assert.equal(typeof imageRule, "function");
+  assert.equal(
+    imageRule([{ content: "remote image" }], 0),
+    "remote image",
+  );
+  assert.deepEqual(Array.from(mathOptions.delimiters), ["dollars", "brackets"]);
+  assert.equal(mathOptions.katexOptions.trust, false);
+  assert.equal(mathOptions.katexOptions.throwOnError, false);
+  assert.match(sanitizerInput, /<script>unsafe\(\)<\/script>/);
+  assert.equal(sanitizerOptions.ALLOW_DATA_ATTR, false);
+  assert.ok(sanitizerOptions.FORBID_TAGS.includes("script"));
+});
+
+test("renderer initialization failure falls back to text", async () => {
+  const reply = "### readable fallback";
+  const ui = createUi(
+    async () => ({ ok: true, json: async () => ({ reply }) }),
+    { markdownit() { throw new Error("renderer failed to initialize"); } },
+  );
+
+  await ui.context.sendMessage("Renderer initialization failure");
+
+  const [content] = ui.assistantContent();
+  assert.equal(content.textContent, reply);
+  assert.equal(content.innerHTML, "");
+});
+
+test("HTTP/API errors remain text-safe and remove the thinking indicator", async () => {
+  const ui = createUi(async () => ({
+    ok: false,
+    json: async () => ({ error: { code: "gemini_unavailable" } }),
+  }));
+
+  await ui.context.sendMessage("Request an API error");
+
+  const messages = ui.elements.get("#message-list").children;
+  const errorContent = messages.at(-1).children[1].children[1];
+  assert.equal(errorContent.textContent, "Gemini is temporarily unavailable right now. Please try again.");
+  assert.equal(errorContent.innerHTML, "");
+  assert.equal(ui.typingMessages().length, 0);
+});
+
+test("user messages and API errors remain on the textContent path", async () => {
+  const ui = createUi(async () => ({
+    ok: false,
+    json: async () => ({ error: { code: "backend_not_configured" } }),
+  }));
+
+  await ui.context.sendMessage("<img src=x onerror=alert(1)>");
+
+  const messages = ui.elements.get("#message-list").children;
+  const userContent = messages[0].children[1].children[1];
+  const errorContent = messages[1].children[1].children[1];
+  assert.equal(userContent.textContent, "<img src=x onerror=alert(1)>");
+  assert.equal(userContent.innerHTML, "");
+  assert.equal(errorContent.textContent, "Gemini is not configured for this local ARIA service.");
+  assert.equal(errorContent.innerHTML, "");
 });

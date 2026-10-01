@@ -2,6 +2,14 @@
 
 Development history for ARIA, organized by version.
 
+## v2.2.0 - Infinity (2026-10-01)
+
+### Browser Response Rendering
+
+- Added sanitized Markdown rendering and local KaTeX formatting for common assistant response math.
+- Built browser dependencies into same-origin vendor assets (0.700 MiB) for offline runtime use; raw HTML and Markdown images remain disabled.
+- Added parser and UI rendering tests and documented supported formatting and fallback behavior.
+
 ## v2.1.0 - Echelon (2026-09-30)
 
 ### Browser Chat Reliability
