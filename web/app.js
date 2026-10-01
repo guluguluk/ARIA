@@ -9,6 +9,7 @@ const welcomeBlock = document.querySelector("#welcome-block");
 const errorMessage = document.querySelector("#compose-error");
 const characterCount = document.querySelector("#character-count");
 const connectionState = document.querySelector("#connection-state");
+let isSending = false;
 
 const SAFE_API_ERRORS = {
   invalid_request: "Enter a message of up to 4,000 characters.",
@@ -72,7 +73,7 @@ function addMessage(role, text, options = {}) {
 function addTypingIndicator() {
   const message = document.createElement("article");
   message.className = "message assistant typing-message";
-  message.setAttribute("aria-label", "ARIA is preparing a response");
+  message.setAttribute("aria-label", "ARIA is thinking");
 
   const avatar = document.createElement("span");
   avatar.className = "message-avatar";
@@ -83,7 +84,7 @@ function addTypingIndicator() {
   body.className = "message-body";
   const label = document.createElement("span");
   label.className = "message-label";
-  label.textContent = "ARIA · working";
+  label.textContent = "ARIA is thinking…";
   const indicator = document.createElement("span");
   indicator.className = "typing-indicator";
   indicator.setAttribute("aria-hidden", "true");
@@ -96,6 +97,10 @@ function addTypingIndicator() {
 }
 
 async function sendMessage(value = input.value) {
+  if (isSending) {
+    return;
+  }
+
   const message = value.trim();
   if (!message) {
     errorMessage.textContent = "Write a message before sending.";
@@ -111,17 +116,19 @@ async function sendMessage(value = input.value) {
     return;
   }
 
-  welcomeBlock?.remove();
-  addMessage("user", message);
-  input.value = "";
-  updateComposer();
-  input.style.height = "46px";
-  sendButton.disabled = true;
-  sendButton.querySelector("span:first-child").textContent = "Sending";
-  const typing = addTypingIndicator();
+  isSending = true;
+  let typing;
 
   try {
-    typing.remove();
+    welcomeBlock?.remove();
+    addMessage("user", message);
+    input.value = "";
+    updateComposer();
+    input.style.height = "46px";
+    sendButton.disabled = true;
+    sendButton.querySelector("span:first-child").textContent = "Sending";
+    typing = addTypingIndicator();
+
     const response = await fetch("/api/chat", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -144,10 +151,11 @@ async function sendMessage(value = input.value) {
 
     addMessage("assistant", result.reply);
   } catch {
-    typing.remove();
     setConnectionState(false);
     addMessage("assistant", "The local ARIA service is unavailable. Try again when it is running.", { error: true });
   } finally {
+    typing?.remove();
+    isSending = false;
     sendButton.disabled = false;
     sendButton.querySelector("span:first-child").textContent = "Send";
     input.focus();
