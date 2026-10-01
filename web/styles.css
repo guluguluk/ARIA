@@ -331,6 +331,99 @@ h1 em {
   white-space: pre-wrap;
 }
 
+.message-text > :first-child {
+  margin-top: 0;
+}
+
+.message-text > :last-child {
+  margin-bottom: 0;
+}
+
+.message-text h1,
+.message-text h2,
+.message-text h3,
+.message-text h4,
+.message-text h5,
+.message-text h6 {
+  margin: 1em 0 0.5em;
+  color: var(--ink);
+  font-family: inherit;
+  font-size: 1.12em;
+  font-weight: 800;
+  line-height: 1.35;
+}
+
+.message-text p,
+.message-text ul,
+.message-text ol,
+.message-text blockquote,
+.message-text pre,
+.message-text section {
+  margin: 0.7em 0;
+}
+
+.message-text ul,
+.message-text ol {
+  padding-left: 1.5em;
+}
+
+.message-text li + li {
+  margin-top: 0.3em;
+}
+
+.message-text blockquote {
+  padding: 0.15em 0 0.15em 1em;
+  border-left: 3px solid #a9bcae;
+  color: #4c5b51;
+}
+
+.message-text hr {
+  margin: 1em 0;
+  border: 0;
+  border-top: 1px solid var(--line);
+}
+
+.message-text a {
+  color: #1f654b;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 2px;
+  overflow-wrap: anywhere;
+}
+
+.message-text :not(pre) > code {
+  padding: 0.12em 0.35em;
+  border: 1px solid #e1e7e0;
+  border-radius: 4px;
+  background: #f0f3ef;
+  font-family: Consolas, "Cascadia Code", monospace;
+  font-size: 0.9em;
+}
+
+.message-text pre {
+  max-width: 100%;
+  overflow-x: auto;
+  padding: 12px 14px;
+  border: 1px solid #dce4dc;
+  border-radius: 7px;
+  background: #f4f6f3;
+  white-space: pre;
+  overscroll-behavior-x: contain;
+}
+
+.message-text pre code {
+  font-family: Consolas, "Cascadia Code", monospace;
+  font-size: 12px;
+  line-height: 1.55;
+}
+
+.message-text .katex-display {
+  max-width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding: 0.2em 0;
+  overscroll-behavior-x: contain;
+}
+
 .message.user .message-text {
   border-color: var(--forest);
   border-radius: 14px 4px 14px 14px;

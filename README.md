@@ -319,12 +319,18 @@ python -m pip install -r requirements.txt
 Run the local web server from the repository root:
 
 ```powershell
+npm ci
+npm run build:web-vendor
 python -m uvicorn web_api:app --app-dir src --host 127.0.0.1 --port 8000
 ```
 
 Open `http://127.0.0.1:8000` in a browser. The health indicator and static UI remain available if Gemini is not configured; chat requests then show a safe configuration error. Configure `GEMINI_API_KEY` in the backend's local environment before using Gemini. Never enter or send the key through the browser.
 
 The API uses `aria.process_command()` and the existing ARIA memory and Gemini flow. Conversation history is one in-memory conversation shared by browser requests handled by this server process, not isolated multi-user sessions. Do not run the terminal conversation and web server against the same core at the same time. Restarting the server clears conversation history; permanent memories remain in the existing local SQLite store.
+
+Assistant replies render headings, paragraphs and line breaks, bold/italic text, ordered/unordered lists, inline/fenced code, horizontal rules, and blockquotes. Local KaTeX renders common `\(...\)` inline and `$$...$$` display math, including standard fractions, roots, scripts, Greek symbols, and operators. The generated runtime assets total 0.700 MiB, including KaTeX WOFF2 fonts, and load from this server without a CDN.
+
+Raw HTML and Markdown images are disabled. Parsed assistant output is sanitized with DOMPurify before insertion; user messages and errors continue to use `textContent`. Unsupported Markdown extensions and LaTeX commands are not promised; malformed math shows KaTeX's error output, while missing renderer assets fall back to literal response text. Re-run `npm ci` and `npm run build:web-vendor` after changing the locked frontend dependencies.
 
 ## 📜 License
 

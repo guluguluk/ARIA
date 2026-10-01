@@ -18,6 +18,52 @@ const SAFE_API_ERRORS = {
   gemini_unavailable: "Gemini is temporarily unavailable right now. Please try again.",
 };
 
+let markdownRenderer;
+const SANITIZER_OPTIONS = {
+  FORBID_TAGS: ["script", "style", "iframe", "object", "embed", "form", "input", "button", "img", "audio", "video"],
+  ALLOW_DATA_ATTR: false,
+};
+
+function renderAssistantContent(content, text) {
+  if (
+    typeof globalThis.markdownit !== "function"
+    || typeof globalThis.texmath !== "function"
+    || typeof globalThis.katex?.renderToString !== "function"
+    || typeof globalThis.DOMPurify?.sanitize !== "function"
+  ) {
+    content.textContent = text;
+    return;
+  }
+
+  try {
+    if (!markdownRenderer) {
+      markdownRenderer = globalThis.markdownit({
+        html: false,
+        breaks: true,
+        linkify: false,
+        typographer: false,
+      });
+      markdownRenderer.renderer.rules.image = (tokens, index) =>
+        markdownRenderer.utils.escapeHtml(tokens[index].content || "");
+      markdownRenderer.use(globalThis.texmath, {
+        engine: globalThis.katex,
+        delimiters: ["dollars", "brackets"],
+        katexOptions: {
+          throwOnError: false,
+          trust: false,
+          strict: "warn",
+        },
+      });
+    }
+
+    const rendered = markdownRenderer.render(text);
+    const sanitized = globalThis.DOMPurify.sanitize(rendered, SANITIZER_OPTIONS);
+    content.innerHTML = sanitized;
+  } catch {
+    content.textContent = text;
+  }
+}
+
 function setConnectionState(connected) {
   connectionState.classList.toggle("is-connected", connected);
   connectionState.classList.toggle("is-offline", !connected);
@@ -59,9 +105,14 @@ function addMessage(role, text, options = {}) {
   label.className = "message-label";
   label.textContent = role === "user" ? "You" : options.error ? "ARIA · error" : "ARIA";
 
-  const content = document.createElement("p");
+  const richAssistantMessage = role === "assistant" && !options.error;
+  const content = document.createElement(richAssistantMessage ? "div" : "p");
   content.className = "message-text";
-  content.textContent = text;
+  if (richAssistantMessage) {
+    renderAssistantContent(content, text);
+  } else {
+    content.textContent = text;
+  }
 
   body.append(label, content);
   message.append(avatar, body);
