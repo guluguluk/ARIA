@@ -2,6 +2,13 @@
 
 Development history for ARIA, organized by version.
 
+## v2.1.0 - Echelon (2026-09-30)
+
+### Browser Chat Reliability
+
+- Kept the assistant thinking indicator visible until chat requests settle, with reliable cleanup and duplicate-submission protection.
+- Added dependency-free UI lifecycle tests for delayed responses, failed requests, and duplicate submissions.
+
 ## v2.0.0 - Horizon (2026-09-30)
 
 ### Web Interface Prototype
