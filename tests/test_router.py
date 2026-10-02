@@ -45,5 +45,13 @@ class TestRouter(unittest.TestCase):
             aria_tool_phrases.clear()
             aria_tool_phrases.extend(original_phrases)
 
+    def test_calculate_command_returns_aria_tool(self):
+        command = "calculate 12 * (3 + 4)"
+        self.assertEqual(route_command(command), "ARIA_TOOL")
+
+    def test_calc_alias_is_rejected(self):
+        command = "calc 12 * (3 + 4)"
+        self.assertEqual(route_command(command), "GEMINI")
+
 if __name__ == "__main__":
     unittest.main()

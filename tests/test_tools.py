@@ -167,6 +167,22 @@ class TestBasicTools(unittest.TestCase):
         self.assertFalse(res["success"])
         self.assertIn("Invalid mathematical expression", res["error"])
 
+    def test_calculator_tool_rejects_boolean_operands(self):
+        res = self.dispatcher.dispatch("calculator_tool", {"expression": "True + 2"})
+        self.assertFalse(res["success"])
+        self.assertIn("Boolean", res["error"])
+
+    def test_calculator_tool_rejects_oversized_expression(self):
+        expression = " + ".join(["1"] * 120)
+        res = self.dispatcher.dispatch("calculator_tool", {"expression": expression})
+        self.assertFalse(res["success"])
+        self.assertIn("maximum length", res["error"].lower())
+
+    def test_calculator_tool_rejects_excessive_exponentiation(self):
+        res = self.dispatcher.dispatch("calculator_tool", {"expression": "2 ** 12"})
+        self.assertFalse(res["success"])
+        self.assertIn("Exponentiation", res["error"])
+
 
 if __name__ == "__main__":
     unittest.main()

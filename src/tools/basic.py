@@ -31,6 +31,9 @@ def echo_tool(text: str, max_length: int = 500) -> str:
         return trimmed[:max_length] + "... (truncated)"
     return trimmed
 
+MAX_EXPRESSION_LENGTH = 256
+MAX_EXPONENT_ABS_VALUE = 10
+
 # Supported math operators for safe calculator
 _OPERATORS = {
     ast.Add: operator.add,
@@ -46,8 +49,11 @@ _OPERATORS = {
 
 def _eval_expr(node: ast.AST) -> Union[int, float]:
     """Recursively evaluates AST nodes safely without using dangerous eval()."""
-    if isinstance(node, ast.Constant) and isinstance(node.value, (int, float)):
-        return node.value
+    if isinstance(node, ast.Constant):
+        if isinstance(node.value, bool):
+            raise ValueError("Boolean values are not allowed in numeric expressions.")
+        if isinstance(node.value, (int, float)):
+            return node.value
     elif isinstance(node, ast.BinOp):
         left = _eval_expr(node.left)
         right = _eval_expr(node.right)
@@ -56,6 +62,10 @@ def _eval_expr(node: ast.AST) -> Union[int, float]:
             raise ValueError(f"Unsupported operator: {op_type.__name__}")
         if op_type in (ast.Div, ast.FloorDiv, ast.Mod) and right == 0:
             raise ZeroDivisionError("Division by zero is not allowed.")
+        if op_type is ast.Pow and abs(right) > MAX_EXPONENT_ABS_VALUE:
+            raise ValueError(
+                "Exponentiation is limited to exponents with absolute value <= 10."
+            )
         return _OPERATORS[op_type](left, right)
     elif isinstance(node, ast.UnaryOp):
         operand = _eval_expr(node.operand)
@@ -71,8 +81,14 @@ def calculator_tool(expression: str) -> Union[int, float]:
     if not isinstance(expression, str) or not expression.strip():
         raise ValueError("Expression must be a non-empty string.")
 
+    stripped_expression = expression.strip()
+    if len(stripped_expression) > MAX_EXPRESSION_LENGTH:
+        raise ValueError(
+            f"Expression exceeds the maximum length of {MAX_EXPRESSION_LENGTH} characters."
+        )
+
     try:
-        parsed = ast.parse(expression.strip(), mode='eval')
+        parsed = ast.parse(stripped_expression, mode='eval')
         return _eval_expr(parsed.body)
     except (SyntaxError, MemoryError):
         raise ValueError("Invalid mathematical expression.")

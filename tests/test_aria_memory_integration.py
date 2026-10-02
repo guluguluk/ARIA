@@ -172,6 +172,13 @@ class TestAriaMemoryGeminiIntegration(unittest.TestCase):
         self.assertEqual(forget_response, "I forgot that memory.")
         ask_gemini.assert_not_called()
 
+    def test_calculator_command_uses_tool_dispatcher_without_gemini(self):
+        with patch("aria.ask_gemini") as ask_gemini:
+            response = aria.process_command("calculate 12 * (3 + 4)", self.store)
+
+        self.assertEqual(response, "84")
+        ask_gemini.assert_not_called()
+
     def test_normal_conversation_does_not_write_memory(self):
         response, ask_gemini = self._request("Tell me a short science fact.")
 

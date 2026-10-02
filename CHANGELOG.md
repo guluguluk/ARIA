@@ -2,6 +2,15 @@
 
 Development history for ARIA, organized by version.
 
+## v2.3.0 - Eternal (2026-10-02)
+
+### Local Calculator Capability
+
+- Added a local arithmetic calculator routed through ARIA's existing tool architecture.
+- The explicit command is `calculate <expression>`, for example `calculate 12 * (3 + 4)`.
+- Calculator execution runs locally and does not require Gemini or internet access.
+- Included basic safeguards for invalid math input, boolean numeric operands, excessive expression length, and constrained exponentiation without broadening the tool surface beyond the local calculator workflow.
+
 ## v2.2.0 - Infinity (2026-10-01)
 
 ### Browser Response Rendering

@@ -10,6 +10,30 @@ from memory import (
 )
 
 
+def _format_tool_result(result):
+    if isinstance(result, float) and result.is_integer():
+        return str(int(result))
+    return str(result)
+
+
+def _handle_tool_command(command):
+    match = re.fullmatch(r"calculate\s+(.+)", command.strip(), re.IGNORECASE)
+    if not match:
+        return None
+
+    expression = match.group(1).strip()
+    if not expression:
+        return "Please provide a mathematical expression after 'calculate'."
+
+    from tools import dispatcher
+
+    dispatch_result = dispatcher.dispatch("calculator_tool", {"expression": expression})
+    if not dispatch_result["success"]:
+        return dispatch_result["error"]
+
+    return _format_tool_result(dispatch_result["result"])
+
+
 sys.stdout.reconfigure(encoding="utf-8")
 sys.stdin.reconfigure(encoding="utf-8")
 
@@ -196,6 +220,9 @@ def process_command(command, store=None):
     print(f"[Router] {route}")
 
     if route == "ARIA_TOOL":
+        tool_response = _handle_tool_command(command)
+        if tool_response is not None:
+            return tool_response
         return "ARIA tool routing is not configured yet."
 
     retrieval_result = retrieve_relevant_memories(command, active_store)
