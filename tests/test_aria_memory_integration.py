@@ -39,6 +39,47 @@ class TestAriaMemoryGeminiIntegration(unittest.TestCase):
             response = aria.process_command(query, self.store)
         return response, ask_gemini
 
+    def test_ordinary_gemini_prompt_states_actual_runtime_limits(self):
+        response, ask_gemini = self._request("Explain how rainbows form.")
+
+        prompt = ask_gemini.call_args.args[0]
+        self.assertEqual(response, "Gemini response")
+        self.assertIn("does not provide general web access", prompt)
+        self.assertIn("Live web search: unavailable", prompt)
+        self.assertIn("Live news/current-event retrieval: unavailable", prompt)
+        self.assertIn("Never claim ARIA searched, browsed", prompt)
+        self.assertIn("knowledge cutoff is not verified", prompt)
+
+    def test_existing_model_identity_still_uses_gemini(self):
+        response, ask_gemini = self._request("What model do you use?")
+
+        self.assertEqual(response, "Gemini response")
+        self.assertIn("Gemini 3.5 Flash-Lite", ask_gemini.call_args.args[0])
+        ask_gemini.assert_called_once()
+
+    def test_capability_date_and_news_questions_are_answered_locally(self):
+        questions = (
+            "Are you up to date?",
+            "Do you have real-time information?",
+            "How do you know today's date?",
+            "What happened yesterday?",
+            "Give me today's news.",
+        )
+
+        with patch("aria.ask_gemini") as ask_gemini:
+            responses = [
+                aria.process_command(question, self.store)
+                for question in questions
+            ]
+
+        ask_gemini.assert_not_called()
+        self.assertIn("no live web search", responses[0])
+        self.assertIn("no live web search", responses[1])
+        self.assertIn("host system clock", responses[2])
+        self.assertIn("not supplied by Gemini", responses[2])
+        self.assertIn("cannot verify current events", responses[3])
+        self.assertIn("cannot verify current events", responses[4])
+
     def test_relevant_memory_is_added_as_reference_data(self):
         self.store.store_memory("favorite_game", "RDR2")
         query = "What is my favorite game?"
@@ -170,6 +211,13 @@ class TestAriaMemoryGeminiIntegration(unittest.TestCase):
         self.assertEqual(remember_response, "I'll remember that.")
         self.assertIn("favorite game: RDR2", list_response)
         self.assertEqual(forget_response, "I forgot that memory.")
+        ask_gemini.assert_not_called()
+
+    def test_calculator_command_uses_tool_dispatcher_without_gemini(self):
+        with patch("aria.ask_gemini") as ask_gemini:
+            response = aria.process_command("calculate 12 * (3 + 4)", self.store)
+
+        self.assertEqual(response, "84")
         ask_gemini.assert_not_called()
 
     def test_normal_conversation_does_not_write_memory(self):

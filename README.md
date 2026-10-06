@@ -42,6 +42,20 @@ Current local models include:
 - **Gemma 3 1B** — lightweight local AI
 - **Qwen 2.5 Coder 7B Instruct** — local coding-oriented AI
 
+ARIA also includes a local arithmetic calculator routed through the same tool architecture used for built-in operations. The explicit command is:
+
+```text
+calculate <expression>
+```
+
+Example:
+
+```text
+calculate 12 * (3 + 4)
+```
+
+This calculator runs locally and does not require Gemini or internet access. It supports basic numeric expressions through a safe AST-based implementation and rejects unsupported expression shapes, boolean operands, excessively long inputs, and extreme exponentiation ranges.
+
 The long-term goal is for ARIA to detect connectivity automatically and transition between online and offline capabilities with minimal user involvement.
 
 ## 🛠️ Planned Architecture
@@ -100,7 +114,7 @@ ARIA implements a modular, extensible Tool System designed to enable safe system
   - `get_aria_status`: Returns system operational status.
   - `get_current_session_info`: Returns safe session metadata.
   - `echo_tool`: Echoes input text (length-limited).
-  - `calculator_tool`: Safely performs basic math using AST parsing (no `eval()`).
+  - `calculator_tool`: Performs simple local arithmetic through a safe AST-based parser for commands such as `calculate 12 * (3 + 4)`. It does not rely on Gemini or internet access.
 
 ### Safety & Design Guidelines
 

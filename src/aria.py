@@ -1,5 +1,6 @@
 import sys
 import re
+from capabilities import answer_capability_question, build_runtime_capability_context
 from router import route_command
 from models import ask_gemini
 from memory import (
@@ -8,6 +9,30 @@ from memory import (
     canonicalize_memory_key,
     retrieve_relevant_memories,
 )
+
+
+def _format_tool_result(result):
+    if isinstance(result, float) and result.is_integer():
+        return str(int(result))
+    return str(result)
+
+
+def _handle_tool_command(command):
+    match = re.fullmatch(r"calculate\s+(.+)", command.strip(), re.IGNORECASE)
+    if not match:
+        return None
+
+    expression = match.group(1).strip()
+    if not expression:
+        return "Please provide a mathematical expression after 'calculate'."
+
+    from tools import dispatcher
+
+    dispatch_result = dispatcher.dispatch("calculator_tool", {"expression": expression})
+    if not dispatch_result["success"]:
+        return dispatch_result["error"]
+
+    return _format_tool_result(dispatch_result["result"])
 
 
 sys.stdout.reconfigure(encoding="utf-8")
@@ -125,6 +150,7 @@ def build_context():
 
 def build_gemini_prompt(memory_context=""):
     history = build_context()
+    capability_context = build_runtime_capability_context()
     memory_prompt_section = ""
     if memory_context:
         memory_prompt_section = (
@@ -148,6 +174,8 @@ Identity:
 - If asked who developed ARIA, say that ARIA is being developed by Raghul Sambasivam.
 - If asked what model you use, explain that the current online AI backend is Gemini 3.5 Flash-Lite.
 - Do not spoil any movie, TV show, or book intentionally or unintentionally. You are only allowed to provide information about the plot(as the limit). You must confirm with the user they really want to know the spoilers and then can spoil. This is to prevent accidental spoilers. If the user asks for a spoiler, you must ask them if they are sure they want to know the spoiler. If they say yes, then you can provide the spoiler. If they say no, then you must not provide the spoiler. This is applicable even the classic ones which are widely known and released decades ago. You must not provide any spoilers without the user's consent. If the user asks for a spoiler, you must ask them if they are sure they want to know the spoiler. If they say yes, then you can provide the spoiler. If they say no, then you must not provide the spoiler. This is applicable even the classic ones which are widely known and released decades ago.
+
+{capability_context}
 
 {memory_prompt_section}Here is the conversation so far:
 
@@ -191,11 +219,18 @@ def process_command(command, store=None):
     if normalized_command in ["who made you", "who made you?"]:
         return "ARIA is being developed by Raghul Sambasivam."
 
+    capability_response = answer_capability_question(command)
+    if capability_response is not None:
+        return capability_response
+
     route = route_command(normalized_command)
 
     print(f"[Router] {route}")
 
     if route == "ARIA_TOOL":
+        tool_response = _handle_tool_command(command)
+        if tool_response is not None:
+            return tool_response
         return "ARIA tool routing is not configured yet."
 
     retrieval_result = retrieve_relevant_memories(command, active_store)

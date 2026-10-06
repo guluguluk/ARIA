@@ -13,6 +13,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
 
 from fastapi.testclient import TestClient
 
+import aria
 import web_api
 
 
@@ -168,6 +169,51 @@ class TestWebApi(unittest.TestCase):
         self.assertNotIn("private", response.text)
         self.assertNotIn("secret-internal-detail", response.text)
         self.assertEqual(core.conversation, [])
+
+    def test_calculator_request_returns_result_via_api(self):
+        aria.conversation = []
+        with (
+            patch.object(web_api, "_load_core", return_value=aria),
+            patch.object(aria, "ask_gemini", return_value="unused") as ask_gemini,
+        ):
+            response = self.client.post(
+                "/api/chat", json={"message": "calculate 12 * (3 + 4)"}
+            )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json(), {"reply": "84"})
+        ask_gemini.assert_not_called()
+
+    def test_invalid_calculator_request_returns_controlled_error_via_api(self):
+        aria.conversation = []
+        with (
+            patch.object(web_api, "_load_core", return_value=aria),
+            patch.object(aria, "ask_gemini", return_value="unused") as ask_gemini,
+        ):
+            response = self.client.post(
+                "/api/chat", json={"message": "calculate import os"}
+            )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(
+            response.json(),
+            {"reply": "Tool execution failed: Invalid mathematical expression."},
+        )
+        ask_gemini.assert_not_called()
+
+    def test_ordinary_api_request_uses_gemini_path(self):
+        aria.conversation = []
+        with (
+            patch.object(web_api, "_load_core", return_value=aria),
+            patch.object(aria, "ask_gemini", return_value="Gemini answer") as ask_gemini,
+        ):
+            response = self.client.post(
+                "/api/chat", json={"message": "Tell me a short joke"}
+            )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json(), {"reply": "Gemini answer"})
+        ask_gemini.assert_called_once()
 
 
 if __name__ == "__main__":

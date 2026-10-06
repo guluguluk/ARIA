@@ -2,9 +2,12 @@
 # Responsible for deciding whether a command should be handled by ARIA tools
 # or routed to the online Gemini AI backend.
 
+import re
+
 aria_tool_phrases = [
     # Future built-in tool trigger phrases can be added here
 ]
+
 
 def route_command(command):
     """
@@ -12,6 +15,9 @@ def route_command(command):
     Returns 'ARIA_TOOL' if a tool phrase matches, otherwise defaults to 'GEMINI'.
     """
     command = command.lower().strip()
+
+    if re.fullmatch(r"calculate\s+.+", command):
+        return "ARIA_TOOL"
 
     if any(phrase in command for phrase in aria_tool_phrases):
         return "ARIA_TOOL"

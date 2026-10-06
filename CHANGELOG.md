@@ -2,6 +2,26 @@
 
 Development history for ARIA, organized by version.
 
+## v2.3.1 - Eternal (2026-10-06)
+
+### Improvement in Gemini's Truthfulness
+
+- Added an explicit runtime capability contract for Gemini-powered responses.
+- ARIA now clearly distinguishes Gemini API access from live web search and news retrieval.
+- Added deterministic answers for direct capability, date/time, and current-news questions.
+- ARIA now uses the host system clock for direct date/time responses and identifies the timestamp source.
+- Added safeguards preventing ARIA from claiming that it searched the web, retrieved news, or received a timestamp from Gemini when those capabilities are not actually available.
+- Added tests covering capability declarations, current-event handling, date/time responses, and normal Gemini requests.
+
+## v2.3.0 - Eternal (2026-10-02)
+
+### Local Calculator Capability
+
+- Added a local arithmetic calculator routed through ARIA's existing tool architecture.
+- The explicit command is `calculate <expression>`, for example `calculate 12 * (3 + 4)`.
+- Calculator execution runs locally and does not require Gemini or internet access.
+- Included basic safeguards for invalid math input, boolean numeric operands, excessive expression length, and constrained exponentiation without broadening the tool surface beyond the local calculator workflow.
+
 ## v2.2.0 - Infinity (2026-10-01)
 
 ### Browser Response Rendering
