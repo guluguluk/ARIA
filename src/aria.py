@@ -1,5 +1,6 @@
 import sys
 import re
+from capabilities import answer_capability_question, build_runtime_capability_context
 from router import route_command
 from models import ask_gemini
 from memory import (
@@ -149,6 +150,7 @@ def build_context():
 
 def build_gemini_prompt(memory_context=""):
     history = build_context()
+    capability_context = build_runtime_capability_context()
     memory_prompt_section = ""
     if memory_context:
         memory_prompt_section = (
@@ -172,6 +174,8 @@ Identity:
 - If asked who developed ARIA, say that ARIA is being developed by Raghul Sambasivam.
 - If asked what model you use, explain that the current online AI backend is Gemini 3.5 Flash-Lite.
 - Do not spoil any movie, TV show, or book intentionally or unintentionally. You are only allowed to provide information about the plot(as the limit). You must confirm with the user they really want to know the spoilers and then can spoil. This is to prevent accidental spoilers. If the user asks for a spoiler, you must ask them if they are sure they want to know the spoiler. If they say yes, then you can provide the spoiler. If they say no, then you must not provide the spoiler. This is applicable even the classic ones which are widely known and released decades ago. You must not provide any spoilers without the user's consent. If the user asks for a spoiler, you must ask them if they are sure they want to know the spoiler. If they say yes, then you can provide the spoiler. If they say no, then you must not provide the spoiler. This is applicable even the classic ones which are widely known and released decades ago.
+
+{capability_context}
 
 {memory_prompt_section}Here is the conversation so far:
 
@@ -214,6 +218,10 @@ def process_command(command, store=None):
 
     if normalized_command in ["who made you", "who made you?"]:
         return "ARIA is being developed by Raghul Sambasivam."
+
+    capability_response = answer_capability_question(command)
+    if capability_response is not None:
+        return capability_response
 
     route = route_command(normalized_command)
 
