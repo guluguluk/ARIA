@@ -157,6 +157,65 @@ class TestBasicTools(unittest.TestCase):
         self.assertTrue(res["success"])
         self.assertEqual(res["result"], 14)
 
+    def test_calculator_tool_constants_and_functions(self):
+        # Constants: pi, e
+        res = self.dispatcher.dispatch("calculator_tool", {"expression": "pi"})
+        self.assertTrue(res["success"])
+        self.assertAlmostEqual(res["result"], 3.141592653589793)
+
+        res = self.dispatcher.dispatch("calculator_tool", {"expression": "e"})
+        self.assertTrue(res["success"])
+        self.assertAlmostEqual(res["result"], 2.718281828459045)
+
+        # Functions: sqrt, sin, cos, tan, log, ln, abs, floor, ceil
+        res = self.dispatcher.dispatch("calculator_tool", {"expression": "sqrt(16)"})
+        self.assertTrue(res["success"])
+        self.assertEqual(res["result"], 4.0)
+
+        res = self.dispatcher.dispatch("calculator_tool", {"expression": "abs(-5)"})
+        self.assertTrue(res["success"])
+        self.assertEqual(res["result"], 5)
+
+        res = self.dispatcher.dispatch("calculator_tool", {"expression": "floor(4.7)"})
+        self.assertTrue(res["success"])
+        self.assertEqual(res["result"], 4)
+
+        res = self.dispatcher.dispatch("calculator_tool", {"expression": "ceil(4.2)"})
+        self.assertTrue(res["success"])
+        self.assertEqual(res["result"], 5)
+
+        res = self.dispatcher.dispatch("calculator_tool", {"expression": "log(100)"})
+        self.assertTrue(res["success"])
+        self.assertAlmostEqual(res["result"], 2.0)
+
+        res = self.dispatcher.dispatch("calculator_tool", {"expression": "ln(e)"})
+        self.assertTrue(res["success"])
+        self.assertAlmostEqual(res["result"], 1.0)
+
+    def test_calculator_tool_nested_expressions(self):
+        res = self.dispatcher.dispatch("calculator_tool", {"expression": "sqrt(3**2 + 4**2) + pi"})
+        self.assertTrue(res["success"])
+        self.assertAlmostEqual(res["result"], 5.0 + 3.141592653589793)
+
+    def test_calculator_tool_invalid_functions_and_constants(self):
+        res = self.dispatcher.dispatch("calculator_tool", {"expression": "unknown_func(5)"})
+        self.assertFalse(res["success"])
+        self.assertIn("Unknown function", res["error"])
+
+        res = self.dispatcher.dispatch("calculator_tool", {"expression": "unknown_const"})
+        self.assertFalse(res["success"])
+        self.assertIn("Unknown constant", res["error"])
+
+        res = self.dispatcher.dispatch("calculator_tool", {"expression": "os.system('cls')"})
+        self.assertFalse(res["success"])
+
+    def test_calculator_tool_domain_errors(self):
+        res = self.dispatcher.dispatch("calculator_tool", {"expression": "sqrt(-1)"})
+        self.assertFalse(res["success"])
+
+        res = self.dispatcher.dispatch("calculator_tool", {"expression": "log(0)"})
+        self.assertFalse(res["success"])
+
     def test_calculator_tool_division_by_zero(self):
         res = self.dispatcher.dispatch("calculator_tool", {"expression": "10 / 0"})
         self.assertFalse(res["success"])

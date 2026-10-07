@@ -2,6 +2,16 @@
 
 Development history for ARIA, organized by version.
 
+## v2.3.2 - Eternal (2026-10-07)
+
+### Local Complex Calculation Capability
+
+- Extended the local safe AST-based calculator in `src/tools/basic.py` to support complex calculations without using `eval()`.
+- Added whitelisted mathematical constants: `pi`, `e`.
+- Added whitelisted mathematical functions: `sqrt`, `sin`, `cos`, `tan`, `log`, `ln`, `abs`, `floor`, and `ceil`.
+- Handled mathematical domain and calculation errors with controlled calculator error responses without exposing tracebacks or falling through to Gemini.
+- Added targeted test coverage for constants, functions, nested expressions, unknown names/functions, and domain errors like `sqrt(-1)` and `log(0)`.
+
 ## v2.3.1 - Eternal (2026-10-06)
 
 ### Improvement in Gemini's Truthfulness
