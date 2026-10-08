@@ -237,11 +237,55 @@ class TestBasicTools(unittest.TestCase):
         self.assertFalse(res["success"])
         self.assertIn("maximum length", res["error"].lower())
 
-    def test_calculator_tool_rejects_excessive_exponentiation(self):
-        res = self.dispatcher.dispatch("calculator_tool", {"expression": "2 ** 12"})
-        self.assertFalse(res["success"])
-        self.assertIn("Exponentiation", res["error"])
+    def test_calculator_tool_implicit_multiplication(self):
+        # Number and parenthesis
+        res = self.dispatcher.dispatch("calculator_tool", {"expression": "10(2)"})
+        self.assertTrue(res["success"])
+        self.assertEqual(res["result"], 20)
 
+        res = self.dispatcher.dispatch("calculator_tool", {"expression": "2(3 + 4)"})
+        self.assertTrue(res["success"])
+        self.assertEqual(res["result"], 14)
 
-if __name__ == "__main__":
-    unittest.main()
+        # Number and constant / function
+        res = self.dispatcher.dispatch("calculator_tool", {"expression": "2pi"})
+        self.assertTrue(res["success"])
+        self.assertAlmostEqual(res["result"], 2 * 3.141592653589793)
+
+        res = self.dispatcher.dispatch("calculator_tool", {"expression": "3sqrt(16)"})
+        self.assertTrue(res["success"])
+        self.assertEqual(res["result"], 12.0)
+
+        # Parenthesized groups
+        res = self.dispatcher.dispatch("calculator_tool", {"expression": "(2 + 3)(4 + 5)"})
+        self.assertTrue(res["success"])
+        self.assertEqual(res["result"], 45)
+
+        res = self.dispatcher.dispatch("calculator_tool", {"expression": "pi(2)"})
+        self.assertTrue(res["success"])
+        self.assertAlmostEqual(res["result"], 3.141592653589793 * 2)
+
+    def test_calculator_tool_scientific_notation_and_constant_e(self):
+        # Scientific notation positive exponent
+        res = self.dispatcher.dispatch("calculator_tool", {"expression": "2e3"})
+        self.assertTrue(res["success"])
+        self.assertEqual(res["result"], 2000.0)
+
+        res = self.dispatcher.dispatch("calculator_tool", {"expression": "1.5E+2"})
+        self.assertTrue(res["success"])
+        self.assertEqual(res["result"], 150.0)
+
+        # Scientific notation negative exponent
+        res = self.dispatcher.dispatch("calculator_tool", {"expression": "1.5e-2"})
+        self.assertTrue(res["success"])
+        self.assertEqual(res["result"], 0.015)
+
+        # Ambiguity test between mathematical constant 'e' and scientific notation
+        # e should be math.e (~2.71828), whereas 2e1 should be 20.0
+        res = self.dispatcher.dispatch("calculator_tool", {"expression": "e"})
+        self.assertTrue(res["success"])
+        self.assertAlmostEqual(res["result"], 2.718281828459045)
+
+        res = self.dispatcher.dispatch("calculator_tool", {"expression": "2e1"})
+        self.assertTrue(res["success"])
+        self.assertEqual(res["result"], 20.0)

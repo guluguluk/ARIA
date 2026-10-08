@@ -6,6 +6,7 @@ Includes status, session info, echo, and safe calculator operations.
 import ast
 import math
 import operator
+import re
 from typing import Dict, Any, Union
 from .registry import ToolRegistry
 
@@ -122,6 +123,67 @@ def _eval_expr(node: ast.AST) -> Union[int, float]:
     else:
         raise ValueError("Unsupported expression structure.")
 
+def _preprocess_expression(expression: str) -> str:
+    """
+    Safely preprocesses mathematical expressions to support implicit multiplication
+    (e.g., 10(2), 2(3+4), 2pi, 2sqrt(16), (2+3)(4+5)) while preserving scientific
+    notation (2e3, 1.5e-2) and strict security boundaries.
+    """
+    # 1. Temporarily replace scientific notation (e.g., 2e3, 1.5e-2, 2E+3) with a placeholder
+    # to prevent the 'e' from being treated as the mathematical constant 'e' or triggering implicit mult.
+    sci_notations = []
+    
+    def repl_sci(match):
+        sci_notations.append(match.group(0))
+        return f"__SCI_{len(sci_notations) - 1}__"
+
+    # Regex for scientific notation: digit(s) optionally followed by dot and digits, followed by [eE][+-]?digit(s)
+    # e.g., 2e3, 1.5e-2, 1e+10
+    sci_pattern = re.compile(r'\b\d+(?:\.\d+)?[eE][+-]?\d+\b')
+    processed = sci_pattern.sub(repl_sci, expression)
+
+    # 2. Insert implicit multiplication where token boundaries unambiguously represent multiplication:
+    # Form A: Number/Constant followed by Parenthesis or Function name
+    # e.g., 10(2), pi(2), 2pi (wait, 2pi: number followed by constant 'pi')
+    # Let's define safe patterns:
+    # - Number/Constant followed by '(' -> number*(
+    # - Number followed by constant ('pi', 'e') -> number*pi (taking care not to match scientific notation parts)
+    # - Constant/Parenthesis followed by Number/Constant/Function/Parenthesis
+
+    # To be extremely precise and safe without splitting arbitrary identifiers like 'abc':
+    # Whitelisted constants and function names are known: pi, e, sqrt, sin, cos, tan, log, ln, abs, floor, ceil.
+    
+    # We can tokenize or apply targeted regex transformations:
+    
+    # Rule 1: Number followed by '(' -> Number * '('  (e.g., 10(2) -> 10*(2))
+    processed = re.sub(r'(\d+(?:\.\d+)?)\s*\(', r'\1*(', processed)
+
+    # Rule 2: Constant ('pi', 'e') followed by '(' -> Constant * '(' (e.g., pi(2) -> pi*(2))
+    # Note: 'e' as scientific notation was already masked out as __SCI_n__.
+    processed = re.sub(r'\b(pi)\s*\(', r'\1*(', processed, flags=re.IGNORECASE)
+    # For 'e', ensure it's word boundary and not part of something else
+    processed = re.sub(r'\b(e)\s*\(', r'\1*(', processed, flags=re.IGNORECASE)
+
+    # Rule 3: Closing parenthesis followed by '(' or Number or Constant or Function name
+    # e.g., (2+3)(4+5) -> (2+3)*(4+5), (2+3)pi -> (2+3)*pi, (2+3)sqrt(4) -> (2+3)*sqrt(4)
+    processed = re.sub(r'\)\s*\(', ')*(', processed)
+    processed = re.sub(r'\)\s*(\d+(?:\.\d+)?)', r')*\1', processed)
+    processed = re.sub(r'\)\s*\b(pi|e|sqrt|sin|cos|tan|log|ln|abs|floor|ceil)\b', r')*\1', processed, flags=re.IGNORECASE)
+
+    # Rule 4: Number followed by Constant ('pi', 'e') or Function name
+    # e.g., 2pi -> 2*pi, 3sqrt(16) -> 3*sqrt(16)
+    processed = re.sub(r'(\d+(?:\.\d+)?)(?=[a-zA-Z])\s*(pi|e|sqrt|sin|cos|tan|log|ln|abs|floor|ceil)\b', r'\1*\2', processed, flags=re.IGNORECASE)
+
+    # Rule 5: Constant ('pi', 'e') followed by Number or Function name (e.g., pi 2 -> pi*2, pi sqrt(2))
+    processed = re.sub(r'\b(pi|e)\s+(\d+(?:\.\d+)?)', r'\1*\2', processed, flags=re.IGNORECASE)
+    processed = re.sub(r'\b(pi|e)\s*\b(pi|e|sqrt|sin|cos|tan|log|ln|abs|floor|ceil)\b', r'\1*\2', processed, flags=re.IGNORECASE)
+
+    # 3. Restore scientific notation placeholders
+    for i, sci_val in enumerate(sci_notations):
+        processed = processed.replace(f"__SCI_{i}__", sci_val)
+
+    return processed
+
 def calculator_tool(expression: str) -> Union[int, float]:
     """Safely calculate a basic math expression using AST parsing."""
     if not isinstance(expression, str) or not expression.strip():
@@ -133,8 +195,10 @@ def calculator_tool(expression: str) -> Union[int, float]:
             f"Expression exceeds the maximum length of {MAX_EXPRESSION_LENGTH} characters."
         )
 
+    preprocessed = _preprocess_expression(stripped_expression)
+
     try:
-        parsed = ast.parse(stripped_expression, mode='eval')
+        parsed = ast.parse(preprocessed, mode='eval')
         return _eval_expr(parsed.body)
     except (SyntaxError, MemoryError, TypeError):
         raise ValueError("Invalid mathematical expression.")
