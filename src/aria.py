@@ -139,6 +139,60 @@ def _handle_memory_command(command, store):
     return None
 
 
+def _handle_help_command(command):
+    """Handle deterministic help and command discovery queries."""
+    clean_cmd = command.strip()
+    norm_cmd = clean_cmd.casefold()
+
+    # General help / commands / ?
+    if norm_cmd in {"help", "commands", "?"}:
+        return (
+            "ARIA Built-in Commands & Capabilities:\n"
+            "- help, commands, ? : List available help topics and commands.\n"
+            "- help calculator : Show calculator syntax, constants, and supported functions.\n"
+            "- help memory     : Show permanent memory storage and retrieval commands.\n"
+            "- calculate <expr>: Evaluate a safe mathematical expression.\n"
+            "- remember that <key> is <content> : Store a permanent memory.\n"
+            "- what do you remember about <key> : Retrieve a stored memory.\n"
+            "- what do you remember : List all stored memories.\n"
+            "- forget <key>    : Delete a stored memory.\n"
+            "- status          : Check operational status.\n"
+            "- version         : Show ARIA version information.\n"
+            "- exit, quit      : Exit the CLI session."
+        )
+
+    # Specific topic help
+    topic_match = re.fullmatch(r"help\s+(.+)", clean_cmd, re.IGNORECASE)
+    if topic_match:
+        topic = topic_match.group(1).strip().casefold()
+        if topic in {"calc", "calculator"}:
+            return (
+                "ARIA Calculator Help:\n"
+                "Syntax: calculate <expression>\n"
+                "Examples: calculate 12 * (3 + 4), calculate sqrt(16) + 2^3, calculate 2pi\n"
+                "Supported Operators: +, -, *, /, //, %, ^ (exponentiation), unary +, unary -\n"
+                "Supported Constants: pi, e\n"
+                "Supported Functions: sqrt, sin, cos, tan, log (log10), ln (natural log), abs, floor, ceil\n"
+                "Features: Safe AST evaluation, implicit multiplication (e.g. 10(2), 2pi, (2+3)(4+5))."
+            )
+        elif topic in {"memory", "memories"}:
+            return (
+                "ARIA Permanent Memory Help:\n"
+                "- remember that <key> is <content> : Save information permanently.\n"
+                "- what do you remember about <key> : Query stored information by key.\n"
+                "- what do you remember : List all saved memories.\n"
+                "- forget <key> : Remove a saved memory."
+            )
+        else:
+            return (
+                f"Unknown help topic: '{topic}'. "
+                "Supported help topics are: 'calculator' (or 'calc') and 'memory'. "
+                "Type 'help' to see all available commands."
+            )
+
+    return None
+
+
 def build_context():
     history = ""
 
@@ -198,6 +252,10 @@ def process_command(command, store=None):
     if memory_response is not None:
         return memory_response
 
+    help_response = _handle_help_command(command)
+    if help_response is not None:
+        return help_response
+
     if normalized_command == "hello":
         return "Hello! How can I help you?"
 
@@ -208,7 +266,7 @@ def process_command(command, store=None):
         return "All systems are operational."
 
     if normalized_command in ["--version", "version"]:
-        return "ARIA v1.0.0 (Online-first architecture with Google Gemini 3.5 Flash-Lite)"
+        return "ARIA v2.4.0 Cognition (Online-first architecture with Google Gemini 3.5 Flash-Lite)"
 
     if normalized_command in ["who are you", "who are you?"]:
         return "I am ARIA - Adaptive Responsive Intelligent Assistant."

@@ -2,6 +2,14 @@
 
 Development history for ARIA, organized by version.
 
+## v2.4.0 - Cognition (2026-10-09)
+
+### Built-in Help & Command Discovery & Version Update
+
+- Added a deterministic built-in Help & Command Discovery capability (`help`, `commands`, `?`, `help calculator`, `help memory`, and unknown topic feedback) in `src/aria.py`.
+- Updated ARIA version reporting to **ARIA v2.4.0 Cognition**.
+- Added unit and integration tests for help command handling in `tests/test_aria_help.py`.
+
 ## v2.3.3 - Eternal (2026-10-08)
 
 ### Local Complex Calculation Expression Parsing
