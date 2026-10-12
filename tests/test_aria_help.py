@@ -54,6 +54,21 @@ class TestAriaHelp(unittest.TestCase):
         self.assertIn("calculator", response)
         self.assertIn("memory", response)
 
+    def test_general_help_documents_all_deterministic_commands(self):
+        response = process_command("help", self.store)
+        self.assertIn("hello", response)
+        self.assertIn("hi", response)
+        self.assertIn("who are you", response)
+        self.assertIn("who developed you", response)
+        self.assertIn("who made you", response)
+
+        # Verify each documented command actually works
+        self.assertEqual(process_command("hello", self.store), "Hello! How can I help you?")
+        self.assertEqual(process_command("hi", self.store), "Hi there! How can I assist you today?")
+        self.assertEqual(process_command("who are you", self.store), "I am ARIA - Adaptive Responsive Intelligent Assistant.")
+        self.assertEqual(process_command("who developed you", self.store), "ARIA is being developed by Raghul Sambasivam.")
+        self.assertEqual(process_command("who made you", self.store), "ARIA is being developed by Raghul Sambasivam.")
+
     def test_case_insensitive_and_whitespace(self):
         response = process_command("\tHeLp   CaLcUlAtOr\n", self.store)
         self.assertIn("ARIA Calculator Help", response)
@@ -61,7 +76,7 @@ class TestAriaHelp(unittest.TestCase):
     def test_version_command(self):
         for cmd in ["version", "--version", "VERSION"]:
             response = process_command(cmd, self.store)
-            self.assertIn("ARIA v2.4.0 Cognition", response)
+            self.assertIn("ARIA v2.4.1 Cognition", response)
 
     def test_help_does_not_call_gemini(self):
         # Even if offline/unconfigured or normal, help should be instant and local

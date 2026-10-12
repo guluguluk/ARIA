@@ -156,6 +156,9 @@ def _handle_help_command(command):
             "- what do you remember about <key> : Retrieve a stored memory.\n"
             "- what do you remember : List all stored memories.\n"
             "- forget <key>    : Delete a stored memory.\n"
+            "- hello, hi       : Greet ARIA.\n"
+            "- who are you     : Display assistant identity.\n"
+            "- who developed you / who made you : Display developer information.\n"
             "- status          : Check operational status.\n"
             "- version         : Show ARIA version information.\n"
             "- exit, quit      : Exit the CLI session."
@@ -266,7 +269,7 @@ def process_command(command, store=None):
         return "All systems are operational."
 
     if normalized_command in ["--version", "version"]:
-        return "ARIA v2.4.0 Cognition (Online-first architecture with Google Gemini 3.5 Flash-Lite)"
+        return "ARIA v2.4.1 Cognition (Online-first architecture with Google Gemini 3.5 Flash-Lite)"
 
     if normalized_command in ["who are you", "who are you?"]:
         return "I am ARIA - Adaptive Responsive Intelligent Assistant."
