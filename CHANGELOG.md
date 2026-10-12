@@ -2,6 +2,14 @@
 
 Development history for ARIA, organized by version.
 
+## v2.4.1 - Cognition (2026-10-09)
+
+### Complete Built-in Command Discovery & Version Update
+
+- Updated general help in `src/aria.py` to document all existing implemented deterministic commands (`hello`, `hi`, `who are you`, `who developed you`, `who made you`).
+- Updated ARIA version reporting to **ARIA v2.4.1 Cognition**.
+- Added corresponding unit tests in `tests/test_aria_help.py`.
+
 ## v2.4.0 - Cognition (2026-10-09)
 
 ### Built-in Help & Command Discovery & Version Update
