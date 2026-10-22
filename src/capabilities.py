@@ -24,6 +24,7 @@ _DATE_QUESTIONS = {
     "what's the current date",
     "what is the current date",
     "what time is it",
+    "what's the time now",
 }
 
 _CURRENT_EVENT_QUESTIONS = {

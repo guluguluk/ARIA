@@ -29,6 +29,8 @@ class TestAriaHelp(unittest.TestCase):
             self.assertIn("ARIA Built-in Commands & Capabilities", response)
             self.assertIn("help calculator", response)
             self.assertIn("help memory", response)
+            self.assertIn("what's the time now", response)
+            self.assertIn("host system date and time", response)
 
     def test_calculator_help(self):
         for cmd in ["help calculator", "help calc", "  HELP  CALCULATOR  "]:

@@ -47,6 +47,29 @@ class TestRuntimeCapabilities(unittest.TestCase):
         self.assertIn("UTC+05:30", answer)
         self.assertIn("not supplied by Gemini", answer)
 
+    def test_supported_date_and_time_phrases_use_host_clock(self):
+        now = datetime(2026, 10, 3, 12, 30, tzinfo=timezone(timedelta(hours=5, minutes=30)))
+        questions = (
+            "what's today's date",
+            "what is today's date",
+            "what is the date today",
+            "what date is it today",
+            "how do you know today's date",
+            "what's the current date",
+            "what is the current date",
+            "what time is it",
+            "What's the time now?",
+        )
+
+        for question in questions:
+            with self.subTest(question=question):
+                answer = answer_capability_question(question, now)
+                self.assertIn("2026-10-03T12:30:00+05:30", answer)
+                self.assertIn("UTC+05:30", answer)
+
+    def test_unrecognized_date_time_question_is_not_intercepted(self):
+        self.assertIsNone(answer_capability_question("What time is it in Tokyo?"))
+
     def test_explicit_news_requests_are_not_answered_as_retrieved_facts(self):
         for question in (
             "What's today's news?",

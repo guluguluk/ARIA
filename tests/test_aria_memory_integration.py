@@ -80,6 +80,32 @@ class TestAriaMemoryGeminiIntegration(unittest.TestCase):
         self.assertIn("cannot verify current events", responses[3])
         self.assertIn("cannot verify current events", responses[4])
 
+    def test_supported_clock_questions_are_local_and_unrecognized_question_falls_back(self):
+        questions = (
+            "What's the time now?",
+            "What time is it?",
+            "What's today's date?",
+            "What is the date today?",
+            "What date is it today?",
+            "How do you know today's date?",
+            "What's the current date?",
+            "What is the current date?",
+        )
+
+        with patch("capabilities._host_clock_text", return_value="2026-10-03T12:30:00+05:30 (IST, UTC+05:30)"):
+            with patch("aria.ask_gemini") as ask_gemini:
+                responses = [aria.process_command(question, self.store) for question in questions]
+
+        ask_gemini.assert_not_called()
+        for response in responses:
+            self.assertIn("2026-10-03T12:30:00+05:30", response)
+
+        with patch("aria.ask_gemini", return_value="Gemini response") as ask_gemini:
+            response = aria.process_command("What time is it in Tokyo?", self.store)
+
+        self.assertEqual(response, "Gemini response")
+        ask_gemini.assert_called_once()
+
     def test_relevant_memory_is_added_as_reference_data(self):
         self.store.store_memory("favorite_game", "RDR2")
         query = "What is my favorite game?"
