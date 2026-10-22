@@ -2,7 +2,18 @@
 
 Development history for ARIA, organized by version.
 
-## v2.4.1 - Cognition (2026-10-09)
+## v2.5.0 - Diagnostics (2026-10-19)
+
+### System Diagnostics & Health Reporting
+
+- Added deterministic built-in commands `diagnostics` and `diagnostic` in `src/aria.py` to display local system health and subsystem status.
+- Added `help diagnostics` / `help diagnostic` and updated general help and unknown topic guidance.
+- Added efficient `MemoryStore.count_memories()` in `src/memory/store.py` for SQLite memory counting.
+- Built a structured diagnostics report covering version, memory store availability and count, dynamic registered-tool count, and Gemini API configuration status (without making network requests or exposing secrets).
+- Updated ARIA version reporting to **ARIA v2.5.0 Diagnostics**.
+- Added comprehensive unit tests in `tests/test_diagnostics.py` and updated existing version tests.
+
+## v2.4.1 - Cognition (2026-10-13)
 
 ### Complete Built-in Command Discovery & Version Update
 

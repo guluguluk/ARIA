@@ -141,6 +141,16 @@ class MemoryStore:
                 results[row["memory_key"]] = row["content"]
         return results
 
+    def count_memories(self) -> int:
+        """
+        Return the total number of stored memories efficiently.
+        """
+        with self._get_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute("SELECT COUNT(*) FROM memories")
+            row = cursor.fetchone()
+            return row[0] if row else 0
+
     def clear_all(self, confirm: bool = False) -> None:
         """
         Clear all stored memories. Requires confirm=True as a safety guard
