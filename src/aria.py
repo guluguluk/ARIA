@@ -139,6 +139,50 @@ def _handle_memory_command(command, store):
     return None
 
 
+def build_diagnostics_report(store=None) -> str:
+    """Build a local system health and subsystem status report."""
+    from tools.registry import registry
+    import models
+
+    # Version
+    version_str = "ARIA v2.5.0 Diagnostics (Online-first architecture with Google Gemini 3.5 Flash-Lite)"
+
+    # Memory store status & count
+    memory_status = "Inactive"
+    memory_count_str = "Unavailable"
+    if store is not None:
+        try:
+            count = store.count_memories()
+            memory_status = f"Active (SQLite) — {count} stored memories"
+            memory_count_str = str(count)
+        except Exception:
+            memory_status = "Unavailable (Error accessing store)"
+            memory_count_str = "Unavailable"
+
+    # Tool registry count
+    try:
+        tools_dict = registry.list_tools()
+        tool_count = len(tools_dict)
+        tool_status = f"Active — {tool_count} registered tools"
+    except Exception:
+        tool_status = "Unavailable"
+
+    # Gemini configuration status (configuration only, no network calls)
+    api_key = getattr(models, "api_key", None)
+    if api_key:
+        backend_status = "Configured (Google Gemini 3.5 Flash-Lite API Key present)"
+    else:
+        backend_status = "Not configured (Missing GEMINI_API_KEY)"
+
+    return (
+        "ARIA System Diagnostics & Health:\n"
+        f"- Version: {version_str}\n"
+        f"- Permanent Memory Store: {memory_status}\n"
+        f"- Tool Registry: {tool_status}\n"
+        f"- AI Backend: {backend_status}"
+    )
+
+
 def _handle_help_command(command):
     """Handle deterministic help and command discovery queries."""
     clean_cmd = command.strip()
@@ -151,11 +195,13 @@ def _handle_help_command(command):
             "- help, commands, ? : List available help topics and commands.\n"
             "- help calculator : Show calculator syntax, constants, and supported functions.\n"
             "- help memory     : Show permanent memory storage and retrieval commands.\n"
+            "- help diagnostics: Show system diagnostics and health check information.\n"
             "- calculate <expr>: Evaluate a safe mathematical expression.\n"
             "- remember that <key> is <content> : Store a permanent memory.\n"
             "- what do you remember about <key> : Retrieve a stored memory.\n"
             "- what do you remember : List all stored memories.\n"
             "- forget <key>    : Delete a stored memory.\n"
+            "- diagnostics, diagnostic : Display local system health and subsystem status.\n"
             "- hello, hi       : Greet ARIA.\n"
             "- who are you     : Display assistant identity.\n"
             "- who developed you / who made you : Display developer information.\n"
@@ -186,10 +232,17 @@ def _handle_help_command(command):
                 "- what do you remember : List all saved memories.\n"
                 "- forget <key> : Remove a saved memory."
             )
+        elif topic in {"diagnostics", "diagnostic"}:
+            return (
+                "ARIA Diagnostics Help:\n"
+                "Command: diagnostics (or diagnostic)\n"
+                "Description: Displays local system health and subsystem status, including version, "
+                "permanent memory store availability and count, registered tool count, and AI backend configuration."
+            )
         else:
             return (
                 f"Unknown help topic: '{topic}'. "
-                "Supported help topics are: 'calculator' (or 'calc') and 'memory'. "
+                "Supported help topics are: 'calculator' (or 'calc'), 'memory', and 'diagnostics'. "
                 "Type 'help' to see all available commands."
             )
 
@@ -268,8 +321,11 @@ def process_command(command, store=None):
     if normalized_command == "status":
         return "All systems are operational."
 
+    if normalized_command in ["diagnostics", "diagnostic"]:
+        return build_diagnostics_report(active_store)
+
     if normalized_command in ["--version", "version"]:
-        return "ARIA v2.4.1 Cognition (Online-first architecture with Google Gemini 3.5 Flash-Lite)"
+        return "ARIA v2.5.0 Diagnostics (Online-first architecture with Google Gemini 3.5 Flash-Lite)"
 
     if normalized_command in ["who are you", "who are you?"]:
         return "I am ARIA - Adaptive Responsive Intelligent Assistant."

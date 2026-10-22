@@ -76,7 +76,7 @@ class TestAriaHelp(unittest.TestCase):
     def test_version_command(self):
         for cmd in ["version", "--version", "VERSION"]:
             response = process_command(cmd, self.store)
-            self.assertIn("ARIA v2.4.1 Cognition", response)
+            self.assertIn("ARIA v2.5.0 Diagnostics", response)
 
     def test_help_does_not_call_gemini(self):
         # Even if offline/unconfigured or normal, help should be instant and local
