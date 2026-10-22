@@ -2,6 +2,14 @@
 
 Development history for ARIA, organized by version.
 
+## v2.5.1 - Diagnostics (2026-10-22)
+
+### Date/Time Capability Fix
+
+- Added support for the natural-language question `what's the time now` using ARIA's existing host system clock capability.
+- Documented supported date/time questions in general help and `commands`.
+- Added regression tests for supported date/time questions, local handling without Gemini, and normal fallback for unrecognized questions.
+
 ## v2.5.0 - Diagnostics (2026-10-19)
 
 ### System Diagnostics & Health Reporting
