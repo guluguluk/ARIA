@@ -2,6 +2,13 @@
 
 Development history for ARIA, organized by version.
 
+## v3.0.0 - Eclipse (2026-10-25)
+
+### iOS 26-Inspired Glassmorphism UI
+
+- Reworked the chat frontend with a more visible frosted-glass treatment, including a floating translucent header, layered conversation panel, glass prompt cards, message surfaces, and composer.
+- Added richer ambient gradients, brighter edge highlights, deeper shadows, and rounded surfaces while retaining ARIA's forest-green palette and responsive layout.
+
 ## v2.6.0 - Project Awareness (2026-10-25)
 
 ### Changelog-Aware Gemini Context
