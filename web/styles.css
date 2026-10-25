@@ -3,13 +3,13 @@
   --ink: #202923;
   --muted: #66736a;
   --line: #d9e1d9;
-  --paper: #f5f7f3;
-  --surface: #ffffff;
+  --paper: #e9f0e9;
+  --surface: rgb(255 255 255 / 66%);
   --forest: #245846;
   --forest-deep: #183d31;
   --citrus: #d4e58c;
   --coral: #bd6149;
-  --shadow: 0 18px 48px rgb(31 55 42 / 9%);
+  --shadow: 0 22px 60px rgb(31 55 42 / 12%);
   font-family: "Trebuchet MS", "Segoe UI", sans-serif;
   color: var(--ink);
   background: var(--paper);
@@ -20,12 +20,42 @@
 }
 
 body {
+  position: relative;
   min-width: 320px;
   min-height: 100vh;
   margin: 0;
-  background-color: var(--paper);
-  background-image: radial-gradient(#cfdbd1 0.65px, transparent 0.65px);
-  background-size: 18px 18px;
+  overflow-x: hidden;
+  background:
+    radial-gradient(ellipse at 16% 18%, rgb(212 229 140 / 58%), transparent 32%),
+    radial-gradient(ellipse at 84% 72%, rgb(105 158 127 / 38%), transparent 34%),
+    radial-gradient(ellipse at 50% 105%, rgb(255 255 255 / 82%), transparent 48%),
+    linear-gradient(135deg, #e5eee7 0%, #dce9e1 48%, #e8efe9 100%);
+}
+
+body::before,
+body::after {
+  position: fixed;
+  z-index: -1;
+  width: 34vw;
+  height: 34vw;
+  min-width: 280px;
+  min-height: 280px;
+  border-radius: 50%;
+  content: "";
+  filter: blur(2px);
+  pointer-events: none;
+}
+
+body::before {
+  top: 15%;
+  right: -12vw;
+  background: radial-gradient(circle, rgb(255 255 255 / 55%), rgb(255 255 255 / 0%) 70%);
+}
+
+body::after {
+  bottom: -20%;
+  left: -12vw;
+  background: radial-gradient(circle, rgb(193 216 193 / 40%), rgb(193 216 193 / 0%) 70%);
 }
 
 button,
@@ -52,10 +82,14 @@ textarea:focus-visible {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 clamp(20px, 5vw, 72px);
-  border-bottom: 1px solid rgb(75 101 82 / 13%);
-  background: rgb(245 247 243 / 88%);
-  backdrop-filter: blur(12px);
+  margin: 14px clamp(14px, 3vw, 42px) 0;
+  padding: 0 clamp(20px, 4vw, 54px);
+  border: 1px solid rgb(255 255 255 / 82%);
+  border-radius: 21px;
+  background: linear-gradient(115deg, rgb(255 255 255 / 76%), rgb(255 255 255 / 46%));
+  box-shadow: 0 12px 36px rgb(31 55 42 / 9%), inset 0 1px 0 rgb(255 255 255 / 95%);
+  backdrop-filter: blur(30px) saturate(175%);
+  -webkit-backdrop-filter: blur(30px) saturate(175%);
 }
 
 .brand {
@@ -126,9 +160,12 @@ textarea:focus-visible {
   align-items: center;
   gap: 8px;
   padding: 8px 12px;
-  border: 1px solid var(--line);
+  border: 1px solid rgb(255 255 255 / 78%);
   border-radius: 999px;
-  background: var(--surface);
+  background: rgb(255 255 255 / 56%);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 72%), 0 4px 14px rgb(31 55 42 / 5%);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
   color: #435249;
   font-size: 12px;
   font-weight: 700;
@@ -155,15 +192,22 @@ textarea:focus-visible {
 .workspace {
   display: grid;
   min-height: 0;
-  padding: 28px 24px 24px;
+  padding: 18px clamp(14px, 3vw, 42px) 22px;
 }
 
 .conversation {
   display: grid;
   grid-template-rows: minmax(0, 1fr) auto;
-  width: min(100%, 900px);
+  width: min(100%, 1120px);
   min-height: 0;
   margin: 0 auto;
+  overflow: hidden;
+  border: 1px solid rgb(255 255 255 / 88%);
+  border-radius: 30px;
+  background: linear-gradient(145deg, rgb(255 255 255 / 52%), rgb(255 255 255 / 28%));
+  box-shadow: 0 30px 90px rgb(28 62 45 / 16%), inset 0 1px 0 rgb(255 255 255 / 96%), inset 0 -1px 0 rgb(255 255 255 / 38%);
+  backdrop-filter: blur(32px) saturate(165%);
+  -webkit-backdrop-filter: blur(32px) saturate(165%);
 }
 
 .message-list {
@@ -235,11 +279,14 @@ h1 em {
   grid-template-columns: auto 1fr auto;
   align-items: center;
   gap: 9px;
-  min-height: 62px;
-  padding: 12px;
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  background: rgb(255 255 255 / 86%);
+  min-height: 70px;
+  padding: 14px;
+  border: 1px solid rgb(255 255 255 / 92%);
+  border-radius: 17px;
+  background: linear-gradient(145deg, rgb(255 255 255 / 76%), rgb(255 255 255 / 42%));
+  box-shadow: inset 0 1px 0 #fff, 0 10px 26px rgb(37 77 54 / 8%);
+  backdrop-filter: blur(22px) saturate(150%);
+  -webkit-backdrop-filter: blur(22px) saturate(150%);
   color: var(--ink);
   cursor: pointer;
   text-align: left;
@@ -248,8 +295,9 @@ h1 em {
 
 .suggestion:hover {
   transform: translateY(-2px);
-  border-color: #9bb3a1;
-  box-shadow: 0 8px 20px rgb(31 55 42 / 7%);
+  border-color: rgb(91 133 105 / 45%);
+  background: rgb(255 255 255 / 72%);
+  box-shadow: 0 12px 28px rgb(31 55 42 / 9%), inset 0 1px 0 #fff;
 }
 
 .suggestion-index {
@@ -321,9 +369,12 @@ h1 em {
 .message-text {
   margin: 0;
   padding: 13px 16px;
-  border: 1px solid var(--line);
-  border-radius: 4px 14px 14px;
-  background: #fff;
+  border: 1px solid rgb(255 255 255 / 90%);
+  border-radius: 5px 18px 18px;
+  background: linear-gradient(145deg, rgb(255 255 255 / 88%), rgb(255 255 255 / 66%));
+  box-shadow: 0 10px 28px rgb(31 55 42 / 8%), inset 0 1px 0 #fff;
+  backdrop-filter: blur(20px) saturate(140%);
+  -webkit-backdrop-filter: blur(20px) saturate(140%);
   color: var(--ink);
   font-size: 14px;
   line-height: 1.6;
@@ -425,10 +476,11 @@ h1 em {
 }
 
 .message.user .message-text {
-  border-color: var(--forest);
-  border-radius: 14px 4px 14px 14px;
-  background: var(--forest);
+  border-color: rgb(255 255 255 / 32%);
+  border-radius: 18px 5px 18px 18px;
+  background: linear-gradient(145deg, #36785f, var(--forest-deep));
   color: #fff;
+  box-shadow: 0 12px 26px rgb(24 61 49 / 22%), inset 0 1px 0 rgb(255 255 255 / 24%);
 }
 
 .message.error .message-text {
@@ -443,9 +495,12 @@ h1 em {
   gap: 5px;
   min-height: 46px;
   padding: 0 15px;
-  border: 1px solid var(--line);
-  border-radius: 4px 14px 14px;
-  background: #fff;
+  border: 1px solid rgb(255 255 255 / 88%);
+  border-radius: 5px 18px 18px;
+  background: rgb(255 255 255 / 70%);
+  box-shadow: 0 8px 22px rgb(31 55 42 / 7%), inset 0 1px 0 #fff;
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
 }
 
 .typing-indicator span {
@@ -472,16 +527,18 @@ h1 em {
   display: flex;
   align-items: flex-end;
   gap: 12px;
-  padding: 12px;
-  border: 1px solid #cbd8cc;
-  border-radius: 14px;
-  background: var(--surface);
-  box-shadow: var(--shadow);
+  padding: 14px;
+  border: 1px solid rgb(255 255 255 / 96%);
+  border-radius: 22px;
+  background: linear-gradient(135deg, rgb(255 255 255 / 84%), rgb(255 255 255 / 58%));
+  box-shadow: 0 18px 48px rgb(31 55 42 / 13%), inset 0 1px 0 #fff, inset 0 -1px 0 rgb(255 255 255 / 54%);
+  backdrop-filter: blur(28px) saturate(160%);
+  -webkit-backdrop-filter: blur(28px) saturate(160%);
   transition: border-color 140ms ease, box-shadow 140ms ease;
 }
 
 .composer:focus-within {
-  border-color: #83a18c;
+  border-color: rgb(76 126 94 / 56%);
   box-shadow: 0 18px 48px rgb(31 55 42 / 12%), 0 0 0 3px rgb(36 88 70 / 9%);
 }
 
@@ -521,9 +578,11 @@ h1 em {
   min-height: 44px;
   padding: 0 15px;
   border: 0;
-  border-radius: 9px;
-  background: var(--forest);
+  border: 1px solid rgb(255 255 255 / 22%);
+  border-radius: 13px;
+  background: linear-gradient(145deg, #36785f, var(--forest-deep));
   color: #fff;
+  box-shadow: 0 7px 16px rgb(24 61 49 / 20%), inset 0 1px 0 rgb(255 255 255 / 24%);
   cursor: pointer;
   font-size: 13px;
   font-weight: 800;
@@ -602,7 +661,9 @@ h1 em {
   }
 
   .topbar {
+    margin: 10px 10px 0;
     padding: 0 16px;
+    border-radius: 17px;
   }
 
   .brand-mark {
@@ -624,7 +685,11 @@ h1 em {
   }
 
   .workspace {
-    padding: 12px 14px max(14px, env(safe-area-inset-bottom));
+    padding: 12px 10px max(14px, env(safe-area-inset-bottom));
+  }
+
+  .conversation {
+    border-radius: 23px;
   }
 
   .message-list {
@@ -652,7 +717,7 @@ h1 em {
   .composer {
     gap: 6px;
     padding: 8px;
-    border-radius: 12px;
+    border-radius: 17px;
   }
 
   .composer textarea {
