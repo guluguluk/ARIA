@@ -2,6 +2,15 @@
 
 Development history for ARIA, organized by version.
 
+## v2.6.0 - Project Awareness (2026-10-25)
+
+### Changelog-Aware Gemini Context
+
+- Added deterministic, local retrieval of relevant release sections from `CHANGELOG.md` for clear ARIA project-history questions.
+- Added bounded changelog reference data to Gemini prompts with safeguards against instruction-like content, unsupported claims, and treating historical notes as proof of current behavior.
+- Updated runtime version reporting to **ARIA v2.6.0 Project Awareness**.
+- Added focused tests for changelog parsing, matching, bounds, graceful file failures, prompt grounding, and Gemini integration.
+
 ## v2.5.1 - Diagnostics (2026-10-22)
 
 ### Date/Time Capability Fix
