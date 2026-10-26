@@ -31,6 +31,11 @@
       </header>
 
       <main class="workspace" id="conversation">
+        <aside class="chat-sidebar" aria-label="Your chats">
+          <button class="new-chat-button" id="new-chat-button" type="button">＋ New chat</button>
+          <div class="chat-groups" id="chat-groups"></div>
+          <p class="sidebar-note">Chats are saved in this browser.</p>
+        </aside>
         <section class="conversation" aria-label="Conversation">
           <div class="message-list" id="message-list" aria-live="polite" aria-relevant="additions">
             <div class="welcome-block" id="welcome-block">
@@ -76,7 +81,7 @@
               </button>
             </form>
             <div class="composer-meta">
-              <span>Single local conversation</span>
+              <span>Chats saved in this browser</span>
               <span class="character-count" id="character-count">0 / 4000</span>
             </div>
           </div>

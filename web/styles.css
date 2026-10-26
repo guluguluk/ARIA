@@ -191,6 +191,8 @@ textarea:focus-visible {
 
 .workspace {
   display: grid;
+  grid-template-columns: 230px minmax(0, 1fr);
+  gap: 16px;
   min-height: 0;
   padding: 18px clamp(14px, 3vw, 42px) 22px;
 }
@@ -198,9 +200,9 @@ textarea:focus-visible {
 .conversation {
   display: grid;
   grid-template-rows: minmax(0, 1fr) auto;
-  width: min(100%, 1120px);
+  width: 100%;
   min-height: 0;
-  margin: 0 auto;
+  margin: 0;
   overflow: hidden;
   border: 1px solid rgb(255 255 255 / 88%);
   border-radius: 30px;
@@ -209,6 +211,25 @@ textarea:focus-visible {
   backdrop-filter: blur(32px) saturate(165%);
   -webkit-backdrop-filter: blur(32px) saturate(165%);
 }
+
+.chat-sidebar {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  padding: 14px;
+  overflow: auto;
+  border: 1px solid rgb(255 255 255 / 78%);
+  border-radius: 22px;
+  background: rgb(255 255 255 / 42%);
+  backdrop-filter: blur(24px);
+}
+
+.new-chat-button { padding: 12px; border: 1px solid #cbd9ce; border-radius: 12px; background: #f8fbf7; color: var(--forest-deep); font-weight: 800; cursor: pointer; text-align: left; }
+.chat-groups { display: grid; gap: 14px; margin-top: 20px; }
+.chat-group-title { margin: 0 0 6px; color: var(--muted); font-size: 10px; font-weight: 800; letter-spacing: .09em; text-transform: uppercase; }
+.chat-item { width: 100%; padding: 9px 10px; overflow: hidden; border: 0; border-radius: 9px; background: transparent; color: var(--ink); cursor: pointer; text-align: left; text-overflow: ellipsis; white-space: nowrap; font-size: 12px; }
+.chat-item:hover, .chat-item.is-active { background: rgb(255 255 255 / 78%); }
+.sidebar-note { margin: auto 0 0; padding-top: 20px; color: var(--muted); font-size: 10px; }
 
 .message-list {
   display: flex;
@@ -703,8 +724,14 @@ h1 em {
   }
 
   .workspace {
+    grid-template-columns: 1fr;
     padding: 12px 10px max(14px, env(safe-area-inset-bottom));
   }
+
+  .chat-sidebar { max-height: 130px; }
+  .chat-groups { display: flex; overflow: auto; margin-top: 12px; }
+  .chat-group { min-width: 150px; }
+  .sidebar-note { display: none; }
 
   .conversation {
     border-radius: 23px;

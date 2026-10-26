@@ -15,6 +15,7 @@ from pydantic import BaseModel, Field
 MAX_MESSAGE_LENGTH = 4000
 _MISSING_GEMINI_KEY_PREFIX = "GEMINI_API_KEY was not found"
 _conversation_lock = threading.RLock()
+_chat_histories = {}
 _WEB_DIRECTORY = Path(__file__).resolve().parent.parent / "web"
 
 
@@ -26,6 +27,7 @@ app = FastAPI(docs_url=None, redoc_url=None, openapi_url=None)
 
 class ChatRequest(BaseModel):
     message: str = Field(min_length=1, max_length=MAX_MESSAGE_LENGTH)
+    chat_id: str = Field(default="default", min_length=1, max_length=100)
 
 
 class EditChatRequest(ChatRequest):
@@ -74,6 +76,17 @@ def _process_turn(core, message: str) -> str:
             raise RuntimeError("A web chat turn unexpectedly returned no response.")
 
         core.conversation.append({"role": "aria", "message": response})
+        return response
+
+
+def _process_chat_turn(core, chat_id: str, message: str) -> str:
+    """Keep independent browser chats on the shared core conversation safely."""
+    if chat_id == "default":
+        return _process_turn(core, message)
+    with _conversation_lock:
+        core.conversation = _chat_histories.setdefault(chat_id, [])
+        response = _process_turn(core, message)
+        _chat_histories[chat_id] = core.conversation
         return response
 
 
@@ -143,7 +156,7 @@ def chat(request: ChatRequest):
             "Gemini is not configured for this local ARIA service.",
         )
 
-    response = _process_turn(core, message)
+    response = _process_chat_turn(core, request.chat_id, message)
     if _is_temporary_gemini_failure(response):
         return _error_response(
             503,
@@ -176,7 +189,13 @@ def edit_chat(request: EditChatRequest):
             "Gemini is not configured for this local ARIA service.",
         )
     try:
-        response = _process_edit(core, request.message_index, message)
+        with _conversation_lock:
+            if request.chat_id == "default":
+                response = _process_edit(core, request.message_index, message)
+            else:
+                core.conversation = _chat_histories.setdefault(request.chat_id, [])
+                response = _process_edit(core, request.message_index, message)
+                _chat_histories[request.chat_id] = core.conversation
     except InvalidTurnError:
         return _error_response(404, "turn_unavailable", "That message can no longer be edited.")
     if _is_temporary_gemini_failure(response):

@@ -12,6 +12,88 @@ const connectionState = document.querySelector("#connection-state");
 let isSending = false;
 let editTarget = null;
 let turnCount = 0;
+const chatGroups = document.querySelector("#chat-groups");
+const newChatButton = document.querySelector("#new-chat-button");
+const CHAT_STORAGE_KEY = "aria.chats.v1";
+const CATEGORIES = ["Work", "Coding", "Learning", "Writing", "Planning", "Personal", "General"];
+let chats = loadChats();
+let activeChatId = null;
+
+function loadChats() {
+  try {
+    const saved = globalThis.localStorage?.getItem(CHAT_STORAGE_KEY);
+    return saved ? JSON.parse(saved).filter((chat) => chat && chat.id && Array.isArray(chat.messages)) : [];
+  } catch { return []; }
+}
+
+function saveChats() {
+  try { globalThis.localStorage?.setItem(CHAT_STORAGE_KEY, JSON.stringify(chats)); } catch { /* Storage may be unavailable. */ }
+}
+
+function categorizeChat(text) {
+  const value = text.toLowerCase();
+  const rules = [
+    ["Coding", /\b(code|coding|program|python|javascript|typescript|debug|function|api|html|css|sql|git|bug)\b/],
+    ["Work", /\b(work|career|job|meeting|business|client|office|resume|interview|team)\b/],
+    ["Learning", /\b(explain|learn|teach|study|meaning|why|how does|what is|derive|proof|concept)\b/],
+    ["Writing", /\b(write|rewrite|draft|essay|story|email|blog|poem|edit|grammar|caption)\b/],
+    ["Planning", /\b(plan|schedule|organize|itinerary|trip|budget|goals|checklist|steps|project)\b/],
+    ["Personal", /\b(personal|health|fitness|recipe|cook|relationship|feel|habit|home)\b/],
+  ];
+  for (const [category, pattern] of rules) if (pattern.test(value)) return category;
+  return "General";
+}
+
+function renderChatGroups() {
+  if (!chatGroups) return;
+  chatGroups.replaceChildren();
+  for (const category of CATEGORIES) {
+    const items = chats.filter((chat) => chat.category === category);
+    if (!items.length) continue;
+    const group = document.createElement("section"); group.className = "chat-group";
+    const title = document.createElement("h2"); title.className = "chat-group-title"; title.textContent = category;
+    group.append(title);
+    for (const chat of items) {
+      const button = document.createElement("button"); button.type = "button";
+      button.className = `chat-item${chat.id === activeChatId ? " is-active" : ""}`;
+      button.textContent = chat.title; button.title = chat.title;
+      button.addEventListener("click", () => openChat(chat.id)); group.append(button);
+    }
+    chatGroups.append(group);
+  }
+}
+
+function persistActiveChat() {
+  if (!activeChatId) return;
+  const chat = chats.find((item) => item.id === activeChatId);
+  if (!chat) return;
+  chat.messages = [...messageList.children].filter((item) => item.className.includes("message") && !item.className.includes("typing-message"))
+    .map((item) => ({ role: item.className.includes("user") ? "user" : "assistant", text: item.children[1].children[1].textContent }));
+  saveChats();
+}
+
+function openChat(id) {
+  persistActiveChat(); activeChatId = id; const chat = chats.find((item) => item.id === id);
+  messageList.replaceChildren(); welcomeBlock?.remove();
+  if (chat?.messages.length) for (const item of chat.messages) addMessage(item.role, item.text, { turnIndex: turnCount++ });
+  else showWelcome();
+  renderChatGroups();
+}
+
+function showWelcome() {
+  const block = document.createElement("div"); block.className = "welcome-block";
+  block.innerHTML = '<p class="eyebrow"><span class="eyebrow-line" aria-hidden="true"></span> A thoughtful assistant</p><h1>Where should we<br><em>begin?</em></h1><p class="welcome-copy">Good questions, half-formed ideas, and tricky problems all belong here.</p>';
+  messageList.append(block);
+}
+
+function startNewChat() {
+  persistActiveChat(); activeChatId = null; turnCount = 0; editTarget = null;
+  messageList.replaceChildren(); showWelcome(); renderChatGroups(); input.focus();
+}
+
+if (newChatButton) newChatButton.addEventListener("click", startNewChat);
+renderChatGroups();
+if (chats.length) openChat(chats[0].id);
 
 const SAFE_API_ERRORS = {
   invalid_request: "Enter a message of up to 4,000 characters.",
@@ -191,6 +273,12 @@ async function sendMessage(value = input.value) {
   const editing = editTarget;
 
   try {
+    if (!activeChatId && !editing) {
+      activeChatId = `chat-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+      const category = categorizeChat(message);
+      chats.unshift({ id: activeChatId, title: message.slice(0, 48), category, messages: [] });
+      renderChatGroups();
+    }
     welcomeBlock?.remove();
     if (!editing) {
       addMessage("user", message, { turnIndex: turnCount });
@@ -207,8 +295,8 @@ async function sendMessage(value = input.value) {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(editing
-        ? { message, message_index: editing.index * 2 }
-        : { message }),
+        ? { message, message_index: editing.index * 2, chat_id: activeChatId }
+        : { message, chat_id: activeChatId }),
     });
     const result = await response.json().catch(() => null);
 
@@ -239,6 +327,8 @@ async function sendMessage(value = input.value) {
       editTarget = null;
     }
     addMessage("assistant", result.reply);
+    persistActiveChat();
+    renderChatGroups();
   } catch {
     setConnectionState(false);
     addMessage("assistant", "The local ARIA service is unavailable. Try again when it is running.", { error: true });
