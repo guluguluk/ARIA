@@ -12,6 +12,7 @@ const connectionState = document.querySelector("#connection-state");
 let isSending = false;
 let editTarget = null;
 let turnCount = 0;
+let activeReadAloud = null;
 const chatGroups = document.querySelector("#chat-groups");
 const newChatButton = document.querySelector("#new-chat-button");
 const CHAT_STORAGE_KEY = "aria.chats.v1";
@@ -73,6 +74,7 @@ function persistActiveChat() {
 }
 
 function openChat(id) {
+  stopReadAloud();
   persistActiveChat(); activeChatId = id; const chat = chats.find((item) => item.id === id);
   messageList.replaceChildren(); welcomeBlock?.remove();
   if (chat?.messages.length) for (const item of chat.messages) addMessage(item.role, item.text, { turnIndex: turnCount++ });
@@ -87,6 +89,7 @@ function showWelcome() {
 }
 
 function startNewChat() {
+  stopReadAloud();
   persistActiveChat(); activeChatId = null; turnCount = 0; editTarget = null;
   messageList.replaceChildren(); showWelcome(); renderChatGroups(); input.focus();
 }
@@ -149,6 +152,56 @@ function renderAssistantContent(content, text) {
   }
 }
 
+function stopReadAloud() {
+  if (!activeReadAloud) return;
+  const previous = activeReadAloud;
+  activeReadAloud = null;
+  previous.button.textContent = "Read aloud";
+  previous.button.setAttribute("aria-label", "Read this response aloud");
+  globalThis.speechSynthesis?.cancel();
+}
+
+function addReadAloudControl(body, content) {
+  const button = document.createElement("button");
+  button.className = "read-aloud-button";
+  button.type = "button";
+  button.textContent = "Read aloud";
+  button.setAttribute("aria-label", "Read this response aloud");
+  const speechAvailable = typeof globalThis.SpeechSynthesisUtterance === "function"
+    && typeof globalThis.speechSynthesis?.speak === "function";
+  button.disabled = !speechAvailable;
+  if (!speechAvailable) button.title = "Read aloud is not available in this browser.";
+
+  button.addEventListener("click", () => {
+    if (!speechAvailable) return;
+    if (activeReadAloud?.button === button) {
+      stopReadAloud();
+      return;
+    }
+
+    stopReadAloud();
+    const utterance = new globalThis.SpeechSynthesisUtterance(content.innerText || content.textContent);
+    const current = { button, utterance };
+    activeReadAloud = current;
+    button.textContent = "Stop";
+    button.setAttribute("aria-label", "Stop reading this response");
+    const reset = () => {
+      if (activeReadAloud !== current) return;
+      activeReadAloud = null;
+      button.textContent = "Read aloud";
+      button.setAttribute("aria-label", "Read this response aloud");
+    };
+    utterance.onend = reset;
+    utterance.onerror = reset;
+    try {
+      globalThis.speechSynthesis.speak(utterance);
+    } catch {
+      reset();
+    }
+  });
+  body.append(button);
+}
+
 function setConnectionState(connected) {
   connectionState.classList.toggle("is-connected", connected);
   connectionState.classList.toggle("is-offline", !connected);
@@ -200,6 +253,7 @@ function addMessage(role, text, options = {}) {
   }
 
   body.append(label, content);
+  if (richAssistantMessage) addReadAloudControl(body, content);
   if (role === "user") {
     const editButton = document.createElement("button");
     editButton.className = "edit-message-button";
@@ -314,6 +368,7 @@ async function sendMessage(value = input.value) {
     }
 
     if (editing) {
+      stopReadAloud();
       editing.content.textContent = message;
       let removeFollowing = false;
       for (const child of [...messageList.children]) {
