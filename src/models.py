@@ -2,6 +2,7 @@ import os
 from pathlib import Path
 
 from google import genai
+from google.genai import types
 from google.genai.errors import APIError
 
 
@@ -49,3 +50,20 @@ def ask_gemini(prompt):
         raise
 
     return response.text
+
+
+def transcribe_audio(audio_data, mime_type):
+    """Convert a short browser microphone recording to plain prompt text."""
+    try:
+        response = client.models.generate_content(
+            model="gemini-3.5-flash-lite",
+            contents=[
+                "Transcribe the speech in this audio verbatim. Return only the spoken words, without commentary.",
+                types.Part.from_bytes(data=audio_data, mime_type=mime_type),
+            ],
+        )
+    except APIError as error:
+        if error.code in TEMPORARY_GEMINI_STATUS_CODES:
+            return TEMPORARY_GEMINI_ERROR_RESPONSE
+        raise
+    return response.text or ""

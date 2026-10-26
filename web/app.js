@@ -4,6 +4,7 @@ const MAX_MESSAGE_LENGTH = 4000;
 const form = document.querySelector("#composer");
 const input = document.querySelector("#message-input");
 const sendButton = document.querySelector("#send-button");
+const voiceButton = document.querySelector("#voice-button");
 const messageList = document.querySelector("#message-list");
 const welcomeBlock = document.querySelector("#welcome-block");
 const errorMessage = document.querySelector("#compose-error");
@@ -13,6 +14,9 @@ let isSending = false;
 let editTarget = null;
 let turnCount = 0;
 let activeReadAloud = null;
+let voiceStream = null;
+let voiceRecorder = null;
+let voiceChunks = [];
 const chatGroups = document.querySelector("#chat-groups");
 const newChatButton = document.querySelector("#new-chat-button");
 const CHAT_STORAGE_KEY = "aria.chats.v1";
@@ -400,6 +404,100 @@ form.addEventListener("submit", (event) => {
   event.preventDefault();
   void sendMessage();
 });
+
+if (voiceButton) {
+  if (!navigator.mediaDevices?.getUserMedia || typeof globalThis.MediaRecorder !== "function") {
+    voiceButton.disabled = true;
+    voiceButton.title = "Voice recording is not supported in this browser";
+    voiceButton.setAttribute("aria-label", "Voice recording is not supported in this browser");
+  } else {
+    const resetVoiceButton = () => {
+      voiceButton.classList.remove("is-listening", "is-processing");
+      voiceButton.setAttribute("aria-pressed", "false");
+      voiceButton.disabled = false;
+      voiceButton.title = "Dictate prompt";
+      voiceButton.setAttribute("aria-label", "Dictate prompt");
+    };
+
+    const transcribeVoice = async (blob) => {
+      voiceButton.classList.remove("is-listening");
+      voiceButton.classList.add("is-processing");
+      voiceButton.disabled = true;
+      voiceButton.title = "Transcribing voice input";
+      voiceButton.setAttribute("aria-label", "Transcribing voice input");
+      try {
+        const response = await fetch("/api/transcribe", {
+          method: "POST",
+          headers: { "Content-Type": blob.type || "audio/webm" },
+          body: blob,
+        });
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok) throw new Error(data.error?.message || "Voice transcription failed. Please try again.");
+        const transcript = String(data.transcript || "").trim();
+        if (!transcript) throw new Error("No speech was detected. Please try again.");
+        const separator = input.value && !/\s$/.test(input.value) ? " " : "";
+        input.value = `${input.value}${separator}${transcript}`.slice(0, MAX_MESSAGE_LENGTH);
+        updateComposer();
+        input.focus();
+      } catch (error) {
+        errorMessage.textContent = error.message || "Voice transcription failed. Please try again.";
+        errorMessage.hidden = false;
+      } finally {
+        voiceStream?.getTracks().forEach((track) => track.stop());
+        voiceStream = null;
+        voiceRecorder = null;
+        resetVoiceButton();
+      }
+    };
+
+    voiceButton.addEventListener("click", async () => {
+      if (voiceRecorder?.state === "recording") {
+        voiceRecorder.stop();
+        voiceButton.classList.remove("is-listening");
+        voiceButton.classList.add("is-processing");
+        voiceButton.title = "Transcribing voice input";
+        voiceButton.setAttribute("aria-label", "Transcribing voice input");
+        return;
+      }
+      try {
+        errorMessage.hidden = true;
+        voiceStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        voiceChunks = [];
+        const preferredType = "audio/webm;codecs=opus";
+        const options = MediaRecorder.isTypeSupported?.(preferredType) ? { mimeType: preferredType } : undefined;
+        voiceRecorder = new MediaRecorder(voiceStream, options);
+        voiceRecorder.addEventListener("dataavailable", (event) => {
+          if (event.data.size) voiceChunks.push(event.data);
+        });
+        voiceRecorder.addEventListener("stop", () => {
+          const blob = new Blob(voiceChunks, { type: voiceRecorder?.mimeType || "audio/webm" });
+          if (blob.size) void transcribeVoice(blob);
+          else {
+            voiceStream?.getTracks().forEach((track) => track.stop());
+            voiceStream = null;
+            voiceRecorder = null;
+            resetVoiceButton();
+            errorMessage.textContent = "No audio was recorded. Check your microphone and try again.";
+            errorMessage.hidden = false;
+          }
+        }, { once: true });
+        voiceRecorder.start();
+        voiceButton.classList.add("is-listening");
+        voiceButton.setAttribute("aria-pressed", "true");
+        voiceButton.title = "Stop recording and transcribe";
+        voiceButton.setAttribute("aria-label", "Stop recording and transcribe");
+      } catch (error) {
+        voiceStream?.getTracks().forEach((track) => track.stop());
+        voiceStream = null;
+        resetVoiceButton();
+        errorMessage.textContent = error.name === "NotAllowedError"
+          ? "Allow microphone access in your browser to use voice input."
+          : "Could not access the microphone. Check that it is connected and try again.";
+        errorMessage.hidden = false;
+      }
+    });
+  }
+}
 
 input.addEventListener("input", updateComposer);
 

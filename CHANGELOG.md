@@ -2,6 +2,14 @@
 
 Development history for ARIA, organized by version.
 
+## v5.1.0 - Axiom (2026-10-26)
+
+### Voice Prompt Input and Branch-Aligned Version
+
+- Added microphone prompt dictation using local audio capture and Gemini transcription through the ARIA backend.
+- Aligned runtime version reporting with the `ARIA-5.1.0-Axiom` branch name.
+- Keep the runtime version and changelog release heading synchronized with each versioned branch release.
+
 ## v5.0.0 - Odyssey (2026-10-26)
 
 ### Read Aloud
