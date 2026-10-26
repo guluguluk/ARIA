@@ -2,6 +2,13 @@
 
 Development history for ARIA, organized by version.
 
+## v4.0.0 - Nova (2026-10-26)
+
+### Saved Chats & Automatic Categories
+
+- Added multiple browser chats with sidebar navigation and automatic grouping into Work, Coding, Learning, Writing, Planning, Personal, or General based on the opening prompt.
+- Saved chat titles and transcripts in browser storage, and kept each chat's backend conversation history separate when switching between chats.
+
 ## v3.1.0 - Parallax (2026-10-26)
 
 ### Prompt Editing
