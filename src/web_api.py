@@ -5,7 +5,7 @@ import sys
 import threading
 from pathlib import Path
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
@@ -13,6 +13,8 @@ from pydantic import BaseModel, Field
 
 
 MAX_MESSAGE_LENGTH = 4000
+MAX_AUDIO_BYTES = 15 * 1024 * 1024
+SUPPORTED_AUDIO_TYPES = {"audio/webm", "audio/ogg", "audio/mp4", "audio/wav", "audio/mpeg"}
 _MISSING_GEMINI_KEY_PREFIX = "GEMINI_API_KEY was not found"
 _conversation_lock = threading.RLock()
 _chat_histories = {}
@@ -129,6 +131,30 @@ async def handle_unexpected_error(_request, _error):
 @app.get("/api/health")
 def health():
     return {"status": "ok"}
+
+
+@app.post("/api/transcribe")
+async def transcribe(request: Request):
+    mime_type = request.headers.get("content-type", "").split(";", 1)[0].strip().lower()
+    if mime_type not in SUPPORTED_AUDIO_TYPES:
+        return _error_response(415, "unsupported_audio", "This microphone recording format is not supported.")
+    audio_data = await request.body()
+    if not audio_data:
+        return _error_response(400, "empty_audio", "No audio was recorded. Please try again.")
+    if len(audio_data) > MAX_AUDIO_BYTES:
+        return _error_response(413, "audio_too_large", "That recording is too long. Please record a shorter prompt.")
+
+    core = _load_core()
+    if core is None:
+        return _error_response(503, "backend_not_configured", "Gemini is not configured for this local ARIA service.")
+    model_module = sys.modules.get("models")
+    transcribe_audio = getattr(model_module, "transcribe_audio", None)
+    if transcribe_audio is None:
+        return _error_response(503, "transcription_unavailable", "Voice transcription is unavailable right now.")
+    transcript = transcribe_audio(audio_data, mime_type)
+    if _is_temporary_gemini_failure(transcript):
+        return _error_response(503, "gemini_unavailable", "Voice transcription is temporarily unavailable. Please try again.")
+    return {"transcript": transcript[:MAX_MESSAGE_LENGTH]}
 
 
 @app.post("/api/chat")

@@ -41,7 +41,7 @@ sys.stdin.reconfigure(encoding="utf-8")
 
 conversation = []
 memory_store = None
-ARIA_VERSION = "ARIA v2.6.0 Project Awareness (Online-first architecture with Google Gemini 3.5 Flash-Lite)"
+ARIA_VERSION = "ARIA v5.1.0 Axiom (Online-first architecture with Google Gemini 3.5 Flash-Lite)"
 
 
 def initialize_memory(db_path=None):

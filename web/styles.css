@@ -628,6 +628,61 @@ h1 em {
   outline: 0;
 }
 
+.voice-button {
+  display: grid;
+  flex: 0 0 44px;
+  width: 44px;
+  height: 44px;
+  place-items: center;
+  border: 1px solid rgb(41 77 59 / 13%);
+  border-radius: 13px;
+  background: rgb(255 255 255 / 72%);
+  color: var(--forest-deep);
+  cursor: pointer;
+  transition: background 140ms ease, color 140ms ease, transform 140ms ease;
+}
+
+.voice-button svg {
+  width: 20px;
+  height: 20px;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.8;
+}
+
+.voice-button:hover:not(:disabled) {
+  transform: translateY(-1px);
+  background: #fff;
+}
+
+.voice-button:focus-visible {
+  outline: 3px solid rgb(36 88 70 / 24%);
+  outline-offset: 2px;
+}
+
+.voice-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.48;
+}
+
+.voice-button.is-listening {
+  background: #a33d32;
+  color: #fff;
+  animation: voice-pulse 1.2s ease-in-out infinite alternate;
+}
+
+.voice-button.is-processing {
+  background: #e7efcf;
+  color: var(--forest-deep);
+  cursor: wait;
+}
+
+@keyframes voice-pulse {
+  to { box-shadow: 0 0 0 5px rgb(163 61 50 / 13%); }
+}
+
 .send-button {
   display: inline-flex;
   flex: 0 0 auto;
@@ -794,6 +849,12 @@ h1 em {
     min-width: 78px;
     padding: 0 11px;
   }
+
+  .voice-button {
+    flex-basis: 40px;
+    width: 40px;
+    height: 40px;
+  }
 }
 
 @media (max-width: 390px) {
@@ -810,6 +871,9 @@ h1 em {
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .voice-button.is-listening {
+    animation: none;
+  }
   *,
   *::before,
   *::after {

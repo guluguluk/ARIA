@@ -102,8 +102,8 @@ class TestAriaProjectContextIntegration(unittest.TestCase):
                 "I'll remember that.",
             )
             self.assertIn("blue", aria.process_command("what do you remember", self.store))
-            self.assertIn("v2.6.0 Project Awareness", aria.process_command("version", self.store))
-            self.assertIn("v2.6.0 Project Awareness", aria.process_command("diagnostics", self.store))
+            self.assertIn("v5.1.0 Axiom", aria.process_command("version", self.store))
+            self.assertIn("v5.1.0 Axiom", aria.process_command("diagnostics", self.store))
         ask_gemini.assert_not_called()
 
 

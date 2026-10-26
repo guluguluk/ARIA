@@ -6,8 +6,7 @@ ARIA is a personal AI assistant designed to make everyday computer use easier th
 
 The project is being developed from the ground up with a focus on **online-first operation**, while retaining local AI capabilities for situations where an internet connection is unavailable.
 
-**The main branch of this repo will feature the latest stable release other new branches will be named by their own version with name...**
-**You can see the version name in CHANGELOG.md**
+Versioned branches use the `ARIA-<version>-<name>` format. When a branch marks a new release, update `ARIA_VERSION` in `src/aria.py` and add a matching release heading to `CHANGELOG.md` so ARIA's reported version includes that branch's version and name. The main branch tracks the latest stable release.
 
 ## 🚀 Vision
 

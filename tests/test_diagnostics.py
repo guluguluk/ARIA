@@ -32,7 +32,7 @@ class TestDiagnostics(unittest.TestCase):
             response = process_command(cmd, self.store)
             self.assertIsNotNone(response)
             self.assertIn("ARIA System Diagnostics & Health:", response)
-            self.assertIn("ARIA v2.6.0 Project Awareness", response)
+            self.assertIn("ARIA v5.1.0 Axiom", response)
 
     def test_memory_count_in_diagnostics(self):
         # Initially 0 memories
