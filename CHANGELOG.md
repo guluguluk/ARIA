@@ -2,6 +2,13 @@
 
 Development history for ARIA, organized by version.
 
+## v3.1.0 - Parallax (2026-10-26)
+
+### Prompt Editing
+
+- Added an Edit action to sent user messages. Updating a prompt replaces that conversation turn, removes later turns, and generates a fresh reply from the corrected conversation.
+- Updated suggested prompts to fill the composer for editing before sending.
+
 ## v3.0.0 - Eclipse (2026-10-25)
 
 ### iOS 26-Inspired Glassmorphism UI

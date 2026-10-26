@@ -14,14 +14,22 @@ from pydantic import BaseModel, Field
 
 MAX_MESSAGE_LENGTH = 4000
 _MISSING_GEMINI_KEY_PREFIX = "GEMINI_API_KEY was not found"
-_conversation_lock = threading.Lock()
+_conversation_lock = threading.RLock()
 _WEB_DIRECTORY = Path(__file__).resolve().parent.parent / "web"
+
+
+class InvalidTurnError(Exception):
+    pass
 
 app = FastAPI(docs_url=None, redoc_url=None, openapi_url=None)
 
 
 class ChatRequest(BaseModel):
     message: str = Field(min_length=1, max_length=MAX_MESSAGE_LENGTH)
+
+
+class EditChatRequest(ChatRequest):
+    message_index: int = Field(ge=0)
 
 
 def _error_response(status_code: int, code: str, message: str) -> JSONResponse:
@@ -67,6 +75,24 @@ def _process_turn(core, message: str) -> str:
 
         core.conversation.append({"role": "aria", "message": response})
         return response
+
+
+def _process_edit(core, message_index: int, message: str) -> str:
+    """Replace a user turn and discard its old response and all later turns."""
+    with _conversation_lock:
+        history = core.conversation
+        if message_index >= len(history) or history[message_index].get("role") != "user":
+            raise InvalidTurnError("The conversation turn could not be edited.")
+        previous_history = history[message_index:]
+        del history[message_index:]
+        try:
+            response = _process_turn(core, message)
+            if _is_temporary_gemini_failure(response):
+                history[message_index:] = previous_history
+            return response
+        except Exception:
+            history.extend(previous_history)
+            raise
 
 
 @app.exception_handler(RequestValidationError)
@@ -118,6 +144,41 @@ def chat(request: ChatRequest):
         )
 
     response = _process_turn(core, message)
+    if _is_temporary_gemini_failure(response):
+        return _error_response(
+            503,
+            "gemini_unavailable",
+            "Gemini is temporarily unavailable right now. Please try again.",
+        )
+    return {"reply": response}
+
+
+@app.post("/api/chat/edit")
+def edit_chat(request: EditChatRequest):
+    message = request.message.strip()
+    if not message:
+        return _error_response(
+            422,
+            "invalid_request",
+            f"Provide a non-empty message of up to {MAX_MESSAGE_LENGTH} characters.",
+        )
+    if message.casefold() in {"exit", "quit"}:
+        return _error_response(
+            400,
+            "command_unavailable",
+            "Exit commands are not available in browser chat.",
+        )
+    core = _load_core()
+    if core is None:
+        return _error_response(
+            503,
+            "backend_not_configured",
+            "Gemini is not configured for this local ARIA service.",
+        )
+    try:
+        response = _process_edit(core, request.message_index, message)
+    except InvalidTurnError:
+        return _error_response(404, "turn_unavailable", "That message can no longer be edited.")
     if _is_temporary_gemini_failure(response):
         return _error_response(
             503,
