@@ -2,6 +2,13 @@
 
 Development history for ARIA, organized by version.
 
+## v5.0.0 - Odyssey (2026-10-26)
+
+### Read Aloud
+
+- Added a per-response Read aloud control using the browser's speech synthesis, with a Stop action while speaking.
+- Stop playback when switching chats or editing a response, and disable the control when browser speech synthesis is unavailable.
+
 ## v4.0.0 - Nova (2026-10-26)
 
 ### Saved Chats & Automatic Categories
