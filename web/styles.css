@@ -366,6 +366,24 @@ h1 em {
   text-align: right;
 }
 
+.edit-message-button {
+  display: block;
+  margin: 5px 0 0 auto;
+  padding: 2px 4px;
+  border: 0;
+  background: transparent;
+  color: var(--muted);
+  font: inherit;
+  font-size: 11px;
+  cursor: pointer;
+}
+
+.edit-message-button:hover,
+.edit-message-button:focus-visible {
+  color: var(--forest-deep);
+  text-decoration: underline;
+}
+
 .message-text {
   margin: 0;
   padding: 13px 16px;

@@ -10,12 +10,15 @@ const errorMessage = document.querySelector("#compose-error");
 const characterCount = document.querySelector("#character-count");
 const connectionState = document.querySelector("#connection-state");
 let isSending = false;
+let editTarget = null;
+let turnCount = 0;
 
 const SAFE_API_ERRORS = {
   invalid_request: "Enter a message of up to 4,000 characters.",
   command_unavailable: "Exit commands are not available in browser chat.",
   backend_not_configured: "Gemini is not configured for this local ARIA service.",
   gemini_unavailable: "Gemini is temporarily unavailable right now. Please try again.",
+  turn_unavailable: "That message can no longer be edited. Please refresh the conversation and try again.",
 };
 
 let markdownRenderer;
@@ -115,6 +118,22 @@ function addMessage(role, text, options = {}) {
   }
 
   body.append(label, content);
+  if (role === "user") {
+    const editButton = document.createElement("button");
+    editButton.className = "edit-message-button";
+    editButton.type = "button";
+    editButton.textContent = "Edit";
+    editButton.setAttribute("aria-label", "Edit this message");
+    editButton.addEventListener("click", () => {
+      editTarget = { element: message, index: options.turnIndex, content };
+      input.value = content.textContent;
+      updateComposer();
+      sendButton.querySelector("span:first-child").textContent = "Update";
+      input.focus();
+      input.setSelectionRange(input.value.length, input.value.length);
+    });
+    body.append(editButton);
+  }
   message.append(avatar, body);
   messageList.append(message);
   message.scrollIntoView({ behavior: "smooth", block: "nearest" });
@@ -169,10 +188,14 @@ async function sendMessage(value = input.value) {
 
   isSending = true;
   let typing;
+  const editing = editTarget;
 
   try {
     welcomeBlock?.remove();
-    addMessage("user", message);
+    if (!editing) {
+      addMessage("user", message, { turnIndex: turnCount });
+      turnCount += 1;
+    }
     input.value = "";
     updateComposer();
     input.style.height = "46px";
@@ -180,10 +203,12 @@ async function sendMessage(value = input.value) {
     sendButton.querySelector("span:first-child").textContent = "Sending";
     typing = addTypingIndicator();
 
-    const response = await fetch("/api/chat", {
+    const response = await fetch(editing ? "/api/chat/edit" : "/api/chat", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ message }),
+      body: JSON.stringify(editing
+        ? { message, message_index: editing.index * 2 }
+        : { message }),
     });
     const result = await response.json().catch(() => null);
 
@@ -200,6 +225,19 @@ async function sendMessage(value = input.value) {
       return;
     }
 
+    if (editing) {
+      editing.content.textContent = message;
+      let removeFollowing = false;
+      for (const child of [...messageList.children]) {
+        if (child === editing.element) {
+          removeFollowing = true;
+          continue;
+        }
+        if (removeFollowing) child.remove();
+      }
+      turnCount = editing.index + 1;
+      editTarget = null;
+    }
     addMessage("assistant", result.reply);
   } catch {
     setConnectionState(false);
@@ -208,7 +246,7 @@ async function sendMessage(value = input.value) {
     typing?.remove();
     isSending = false;
     sendButton.disabled = false;
-    sendButton.querySelector("span:first-child").textContent = "Send";
+    sendButton.querySelector("span:first-child").textContent = editTarget ? "Update" : "Send";
     input.focus();
   }
 }
@@ -231,7 +269,8 @@ document.querySelectorAll("[data-prompt]").forEach((button) => {
   button.addEventListener("click", () => {
     input.value = button.dataset.prompt;
     updateComposer();
-    form.requestSubmit();
+    input.focus();
+    input.setSelectionRange(input.value.length, input.value.length);
   });
 });
 
