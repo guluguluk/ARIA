@@ -2,6 +2,14 @@
 
 Development history for ARIA, organized by version.
 
+## v6.0.0 - Abyss (2026-10-27)
+
+### Dark Mode
+
+- Added a header toggle for switching between light and dark themes.
+- Saved the selected theme in browser storage so it is restored on later visits.
+- Updated chat surfaces, controls, and content styling to remain legible in dark mode.
+
 ## v5.1.0 - Axiom (2026-10-26)
 
 ### Voice Prompt Input and Branch-Aligned Version
