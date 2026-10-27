@@ -10,6 +10,30 @@ const welcomeBlock = document.querySelector("#welcome-block");
 const errorMessage = document.querySelector("#compose-error");
 const characterCount = document.querySelector("#character-count");
 const connectionState = document.querySelector("#connection-state");
+const themeToggle = document.querySelector("#theme-toggle");
+const themeColorMeta = document.querySelector("#theme-color-meta");
+const THEME_STORAGE_KEY = "aria.theme.v1";
+
+function applyTheme(theme) {
+  const isDark = theme === "dark";
+  document.documentElement.dataset.theme = isDark ? "dark" : "light";
+  themeToggle?.setAttribute("aria-pressed", String(isDark));
+  themeToggle?.setAttribute("aria-label", `Switch to ${isDark ? "light" : "dark"} mode`);
+  const icon = themeToggle?.querySelector(".theme-toggle-icon");
+  const label = themeToggle?.querySelector(".theme-toggle-label");
+  if (icon) icon.textContent = isDark ? "☀" : "☾";
+  if (label) label.textContent = isDark ? "Light mode" : "Dark mode";
+  if (themeColorMeta) themeColorMeta.content = isDark ? "#111a16" : "#eef2ed";
+}
+
+let savedTheme = "light";
+try { savedTheme = localStorage.getItem(THEME_STORAGE_KEY) === "dark" ? "dark" : "light"; } catch { /* Storage may be unavailable. */ }
+applyTheme(savedTheme);
+themeToggle?.addEventListener("click", () => {
+  const nextTheme = document.documentElement.dataset.theme === "dark" ? "light" : "dark";
+  applyTheme(nextTheme);
+  try { localStorage.setItem(THEME_STORAGE_KEY, nextTheme); } catch { /* Storage may be unavailable. */ }
+});
 let isSending = false;
 let editTarget = null;
 let turnCount = 0;

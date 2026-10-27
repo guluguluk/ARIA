@@ -171,6 +171,29 @@ textarea:focus-visible {
   font-weight: 700;
 }
 
+.topbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.theme-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 8px 12px;
+  border: 1px solid rgb(255 255 255 / 78%);
+  border-radius: 999px;
+  background: rgb(255 255 255 / 56%);
+  color: var(--forest-deep);
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.theme-toggle:hover { background: rgb(255 255 255 / 82%); }
+.theme-toggle-icon { font-size: 15px; line-height: 1; }
+
 .status-dot {
   width: 8px;
   height: 8px;
@@ -799,6 +822,10 @@ h1 em {
     font-size: 11px;
   }
 
+  .topbar-actions { gap: 6px; }
+  .theme-toggle { gap: 0; padding: 8px 10px; }
+  .theme-toggle-label { display: none; }
+
   .workspace {
     grid-template-columns: 1fr;
     padding: 12px 10px max(14px, env(safe-area-inset-bottom));
@@ -856,6 +883,73 @@ h1 em {
     height: 40px;
   }
 }
+
+/* Dark theme */
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --ink: #e8eee9;
+  --muted: #aab8ae;
+  --line: #35463d;
+  --paper: #111a16;
+  --surface: rgb(28 40 33 / 80%);
+  --forest: #a5d4b5;
+  --forest-deep: #183d31;
+  --citrus: #d4e58c;
+  --coral: #e99a7e;
+  --shadow: 0 22px 60px rgb(0 0 0 / 35%);
+}
+
+:root[data-theme="dark"] body {
+  background:
+    radial-gradient(ellipse at 16% 18%, rgb(111 137 73 / 18%), transparent 32%),
+    radial-gradient(ellipse at 84% 72%, rgb(44 92 66 / 24%), transparent 34%),
+    linear-gradient(135deg, #111a16 0%, #17231c 48%, #111a16 100%);
+}
+
+:root[data-theme="dark"] body::before { background: radial-gradient(circle, rgb(119 151 126 / 12%), transparent 70%); }
+:root[data-theme="dark"] body::after { background: radial-gradient(circle, rgb(89 128 96 / 15%), transparent 70%); }
+:root[data-theme="dark"] .topbar,
+:root[data-theme="dark"] .conversation,
+:root[data-theme="dark"] .chat-sidebar,
+:root[data-theme="dark"] .suggestion,
+:root[data-theme="dark"] .composer,
+:root[data-theme="dark"] .message-text,
+:root[data-theme="dark"] .typing-indicator {
+  border-color: rgb(191 216 198 / 14%);
+  background: linear-gradient(145deg, rgb(35 50 41 / 92%), rgb(25 38 31 / 90%));
+  box-shadow: 0 14px 38px rgb(0 0 0 / 20%), inset 0 1px 0 rgb(255 255 255 / 5%);
+}
+:root[data-theme="dark"] .connection-state,
+:root[data-theme="dark"] .theme-toggle,
+:root[data-theme="dark"] .read-aloud-button,
+:root[data-theme="dark"] .voice-button {
+  border-color: rgb(191 216 198 / 18%);
+  background: rgb(34 49 40 / 88%);
+  color: var(--ink);
+}
+:root[data-theme="dark"] .new-chat-button {
+  border-color: #40554a;
+  background: #223128;
+  color: #c4e6cf;
+}
+:root[data-theme="dark"] .chat-item:hover,
+:root[data-theme="dark"] .chat-item.is-active,
+:root[data-theme="dark"] .suggestion:hover { background: rgb(153 194 165 / 13%); }
+:root[data-theme="dark"] .suggestion { color: var(--ink); }
+:root[data-theme="dark"] .message-text blockquote { border-color: #668474; color: #c0ccc3; }
+:root[data-theme="dark"] .message-text a { color: #a7d8b7; }
+:root[data-theme="dark"] .message-text :not(pre) > code { border-color: #405248; background: #1b2921; }
+:root[data-theme="dark"] .message-text pre { border-color: #405248; background: #17231c; }
+:root[data-theme="dark"] .message.error .message-text { border-color: #74493d; background: #38251f; color: #ffc2ad; }
+:root[data-theme="dark"] .message.user .message-text { background: linear-gradient(145deg, #36785f, #183d31); color: #fff; }
+:root[data-theme="dark"] .message.user .message-avatar { background: #e6c3a0; color: #422e1f; }
+:root[data-theme="dark"] .composer textarea::placeholder { color: #9aaba0; }
+:root[data-theme="dark"] .voice-button:hover:not(:disabled),
+:root[data-theme="dark"] .read-aloud-button:hover:not(:disabled) { background: #34483b; }
+:root[data-theme="dark"] .voice-button.is-processing { background: #445238; color: #e3efc0; }
+:root[data-theme="dark"] .eyebrow,
+:root[data-theme="dark"] h1 em { color: #a5d4b5; }
+:root[data-theme="dark"] .message-text hr { border-color: var(--line); }
 
 @media (max-width: 390px) {
   .brand-subtitle {

@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="theme-color" content="#eef2ed">
+    <meta name="theme-color" content="#eef2ed" id="theme-color-meta">
     <title>ARIA | Chat</title>
     <link rel="stylesheet" href="vendor/katex/katex.min.css">
     <link rel="stylesheet" href="vendor/markdown-it-texmath/texmath.css">
@@ -24,9 +24,14 @@
             <span class="brand-subtitle">Adaptive Responsive Intelligent Assistant</span>
           </span>
         </a>
+        <div class="topbar-actions">
+        <button class="theme-toggle" id="theme-toggle" type="button" aria-label="Switch to dark mode" aria-pressed="false">
+          <span class="theme-toggle-icon" aria-hidden="true">☾</span><span class="theme-toggle-label">Dark mode</span>
+        </button>
         <div class="connection-state is-offline" id="connection-state" role="status" aria-live="polite">
           <span class="status-dot" aria-hidden="true"></span>
           <span class="connection-label">Connecting to local ARIA</span>
+        </div>
         </div>
       </header>
 
