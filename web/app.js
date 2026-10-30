@@ -13,6 +13,26 @@ const connectionState = document.querySelector("#connection-state");
 const themeToggle = document.querySelector("#theme-toggle");
 const themeColorMeta = document.querySelector("#theme-color-meta");
 const THEME_STORAGE_KEY = "aria.theme.v1";
+const paletteSelect = document.querySelector("#palette-select");
+const PALETTE_STORAGE_KEY = "aria.palette.v1";
+const PALETTES = ["forest", "ocean", "lavender", "sunset"];
+
+function applyPalette(palette) {
+  const selected = PALETTES.includes(palette) ? palette : "forest";
+  document.documentElement.dataset.palette = selected;
+  if (paletteSelect) paletteSelect.value = selected;
+}
+
+let savedPalette = "forest";
+try {
+  const storedPalette = localStorage.getItem(PALETTE_STORAGE_KEY);
+  if (PALETTES.includes(storedPalette)) savedPalette = storedPalette;
+} catch { /* Storage may be unavailable. */ }
+applyPalette(savedPalette);
+paletteSelect?.addEventListener("change", () => {
+  applyPalette(paletteSelect.value);
+  try { localStorage.setItem(PALETTE_STORAGE_KEY, document.documentElement.dataset.palette); } catch { /* Storage may be unavailable. */ }
+});
 
 function applyTheme(theme) {
   const isDark = theme === "dark";

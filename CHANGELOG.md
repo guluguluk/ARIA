@@ -2,6 +2,13 @@
 
 Development history for ARIA, organized by version.
 
+## v6.1.0 - Afterlight (2026-10-30)
+
+### Interface Colour Palettes
+
+- Added Forest, Ocean, Lavender, and Sunset colour palettes with browser storage persistence.
+- Extended the alternate palettes across dark mode panels, controls, borders, hover states, code blocks, and user messages for a clearer visual distinction.
+
 ## v6.0.0 - Abyss (2026-10-27)
 
 ### Dark Mode
