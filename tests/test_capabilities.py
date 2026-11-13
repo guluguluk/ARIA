@@ -7,7 +7,11 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
 
-from capabilities import answer_capability_question, build_runtime_capability_context
+from capabilities import (
+    answer_capability_question,
+    build_runtime_capability_context,
+    needs_live_search,
+)
 
 
 class TestRuntimeCapabilities(unittest.TestCase):
@@ -15,9 +19,8 @@ class TestRuntimeCapabilities(unittest.TestCase):
         context = build_runtime_capability_context()
 
         self.assertIn("Gemini API", context)
-        self.assertIn("does not provide general web access", context)
-        self.assertIn("Live web search: unavailable", context)
-        self.assertIn("Live news/current-event retrieval: unavailable", context)
+        self.assertIn("Exa is the primary provider", context)
+        self.assertIn("Gemini Google Search grounding is an optional fallback", context)
         self.assertIn("knowledge cutoff is not verified", context)
         self.assertIn("Local calculator: available", context)
         self.assertIn("SQLite", context)
@@ -34,8 +37,8 @@ class TestRuntimeCapabilities(unittest.TestCase):
         ):
             with self.subTest(question=question):
                 answer = answer_capability_question(question)
-                self.assertIn("no live web search", answer)
-                self.assertIn("may be out of date", answer)
+                self.assertIn("Exa", answer)
+                self.assertIn("optional fallback", answer)
 
     def test_direct_date_questions_name_host_clock_and_timezone(self):
         now = datetime(2026, 10, 3, 12, 30, tzinfo=timezone(timedelta(hours=5, minutes=30)))
@@ -70,7 +73,7 @@ class TestRuntimeCapabilities(unittest.TestCase):
     def test_unrecognized_date_time_question_is_not_intercepted(self):
         self.assertIsNone(answer_capability_question("What time is it in Tokyo?"))
 
-    def test_explicit_news_requests_are_not_answered_as_retrieved_facts(self):
+    def test_explicit_news_requests_route_to_live_search(self):
         for question in (
             "What's today's news?",
             "Yesterday's international news",
@@ -79,9 +82,19 @@ class TestRuntimeCapabilities(unittest.TestCase):
             "Give me yesterday's international and India news.",
         ):
             with self.subTest(question=question):
-                answer = answer_capability_question(question)
-                self.assertIn("cannot verify current events", answer)
-                self.assertIn("no live web or news retrieval", answer)
+                self.assertIsNone(answer_capability_question(question))
+                self.assertTrue(needs_live_search(question))
+
+    def test_live_search_intent_and_regular_prompts(self):
+        for question in (
+            "What is the latest Python release?",
+            "What is the weather today?",
+            "Give me today's news",
+            "What's new in technology sector?",
+        ):
+            with self.subTest(question=question):
+                self.assertTrue(needs_live_search(question))
+        self.assertFalse(needs_live_search("Explain photosynthesis."))
 
     def test_unrelated_questions_are_not_intercepted(self):
         self.assertIsNone(answer_capability_question("Explain photosynthesis."))
