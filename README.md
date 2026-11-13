@@ -317,7 +317,16 @@ This structure will expand as ARIA gains dedicated modules for memory, tools, vo
 
 ARIA uses environment variables for API credentials.
 
-The local `.env` file is excluded from version control and should **never** be committed to the repository.
+Configure Exa in the backend's `src/.env` file, which is excluded from version control:
+
+```dotenv
+EXA_API_KEY=your-exa-api-key
+EXA_MONTHLY_BUDGET_USD=1.00
+```
+
+Replace the placeholder with your own Exa API key locally. Never commit `src/.env`, place the key in browser code, or send it through the chat UI. The monthly budget is checked against Exa-reported costs in the local `aria_search.db` usage ledger; once the configured ceiling is reached, further paid Exa searches are blocked. Search results are cached locally to avoid repeating identical upstream requests.
+
+Live searches use Exa from the backend. Economical searches use Exa's low-latency mode; explicit recency requests use its balanced mode. ARIA requests up to five results. `GEMINI_SEARCH_FALLBACK=true` optionally enables the existing Gemini Google Search grounding when Exa has no usable live or cached results; it is disabled by default.
 
 ## 🌐 Local Web Chat
 

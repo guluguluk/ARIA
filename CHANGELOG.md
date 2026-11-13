@@ -2,6 +2,15 @@
 
 Development history for ARIA, organized by version.
 
+## v7.0.0 - Oracle (2026-11-13)
+
+### Exa Live Search
+
+- Added Exa as ARIA's primary live-search provider while keeping Gemini as the answer generator and preserving Gemini's existing functionality.
+- Added SQLite result caching and duplicate-query coalescing, plus monthly usage and reported-cost tracking with a configurable spending ceiling. The backend is configured with a `$1.00` monthly Exa budget.
+- Added graceful provider-error handling: malformed responses are not cached as successes, valid zero-result responses remain cacheable, and existing cached results can be used when an upstream search fails.
+- Verified one real Exa search for `What is Python programming language?`. It returned one result, `What is Python? Executive Summary | Python.org`, with a valid Python.org URL and a highlight; no publication date was supplied. Exa reported a cost of `$0.007`, which was recorded in the SQLite usage ledger. Repeating the query used the local cache without another paid request.
+
 ## v6.1.0 - Afterlight (2026-10-30)
 
 ### Interface Colour Palettes

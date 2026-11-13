@@ -12,6 +12,9 @@ from unittest.mock import patch
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
 
 from google.genai.errors import ServerError
+from exa_provider import SearchResult
+from search_service import SearchResponse, SearchUnavailableError
+from models import TEMPORARY_GEMINI_ERROR_RESPONSE
 
 import aria
 from memory import MAX_CONTEXT_CHARACTERS, MemoryStore
@@ -44,10 +47,9 @@ class TestAriaMemoryGeminiIntegration(unittest.TestCase):
 
         prompt = ask_gemini.call_args.args[0]
         self.assertEqual(response, "Gemini response")
-        self.assertIn("does not provide general web access", prompt)
-        self.assertIn("Live web search: unavailable", prompt)
-        self.assertIn("Live news/current-event retrieval: unavailable", prompt)
-        self.assertIn("Never claim ARIA searched, browsed", prompt)
+        self.assertIn("Exa is the primary provider", prompt)
+        self.assertIn("Live web search: Exa is the primary provider", prompt)
+        self.assertIn("Do not claim search was successful", prompt)
         self.assertIn("knowledge cutoff is not verified", prompt)
 
     def test_existing_model_identity_still_uses_gemini(self):
@@ -57,28 +59,63 @@ class TestAriaMemoryGeminiIntegration(unittest.TestCase):
         self.assertIn("Gemini 3.5 Flash-Lite", ask_gemini.call_args.args[0])
         ask_gemini.assert_called_once()
 
-    def test_capability_date_and_news_questions_are_answered_locally(self):
-        questions = (
-            "Are you up to date?",
-            "Do you have real-time information?",
-            "How do you know today's date?",
-            "What happened yesterday?",
-            "Give me today's news.",
-        )
+    def test_capability_and_clock_questions_and_live_news_routing(self):
+        self.assertIn("Exa", aria.process_command("Are you up to date?", self.store))
+        self.assertIn("Exa", aria.process_command("Do you have real-time information?", self.store))
+        clock_answer = aria.process_command("How do you know today's date?", self.store)
+        self.assertIn("host system clock", clock_answer)
+        self.assertIn("not supplied by Gemini", clock_answer)
 
-        with patch("aria.ask_gemini") as ask_gemini:
-            responses = [
-                aria.process_command(question, self.store)
-                for question in questions
-            ]
+        for query in ("What happened yesterday?", "Give me today's news."):
+            with self.subTest(query=query):
+                search_response = SearchResponse((SearchResult(
+                    "News", "https://news.example/story", "2026-11-10", ("Verified details",)
+                ),), False)
+                with patch("aria._get_search_service") as get_search_service, \
+                        patch("aria.ask_gemini", return_value="Search-backed response") as ask_gemini:
+                    get_search_service.return_value.search.return_value = search_response
+                    response = aria.process_command(query, self.store)
+                self.assertEqual(response, "Search-backed response")
+                ask_gemini.assert_called_once()
+                self.assertNotIn("use_search", ask_gemini.call_args.kwargs)
+                self.assertIn("https://news.example/story", ask_gemini.call_args.args[0])
+                self.assertIn("2026-11-10", ask_gemini.call_args.args[0])
 
+    def test_live_search_failure_does_not_automatically_call_gemini_grounding(self):
+        with patch("aria._get_search_service") as get_search_service, \
+                patch("aria.ask_gemini") as ask_gemini, \
+                patch.dict("os.environ", {"GEMINI_SEARCH_FALLBACK": "false"}):
+            get_search_service.return_value.search.side_effect = SearchUnavailableError()
+            response = aria.process_command("Give me today's news.", self.store)
+        self.assertIn("Live search is unavailable", response)
         ask_gemini.assert_not_called()
-        self.assertIn("no live web search", responses[0])
-        self.assertIn("no live web search", responses[1])
-        self.assertIn("host system clock", responses[2])
-        self.assertIn("not supplied by Gemini", responses[2])
-        self.assertIn("cannot verify current events", responses[3])
-        self.assertIn("cannot verify current events", responses[4])
+
+    def test_successful_search_results_are_shown_when_gemini_synthesis_is_temporarily_unavailable(self):
+        search_response = SearchResponse((SearchResult(
+            "NASA mission update", "https://nasa.gov/example", "2026-11-12",
+            ("A short verified search excerpt.",),
+        ),), False)
+        with patch("aria._get_search_service") as get_search_service, \
+                patch("aria.ask_gemini", return_value=TEMPORARY_GEMINI_ERROR_RESPONSE) as ask_gemini:
+            get_search_service.return_value.search.return_value = search_response
+            response = aria.process_command("Find the latest news about NASA.", self.store)
+        self.assertIn("Gemini could not summarize the live search", response)
+        self.assertIn("NASA mission update", response)
+        self.assertIn("https://nasa.gov/example", response)
+        self.assertIn("2026-11-12", response)
+        self.assertIn("A short verified search excerpt.", response)
+        ask_gemini.assert_called_once()
+        self.assertNotIn("use_search", ask_gemini.call_args.kwargs)
+
+    def test_optional_gemini_grounding_fallback_can_be_enabled(self):
+        with patch("aria._get_search_service") as get_search_service, \
+                patch("aria.ask_gemini", return_value="Grounded response") as ask_gemini, \
+                patch.dict("os.environ", {"GEMINI_SEARCH_FALLBACK": "true"}):
+            get_search_service.return_value.search.side_effect = SearchUnavailableError()
+            response = aria.process_command("Give me today's news.", self.store)
+        self.assertEqual(response, "Grounded response")
+        ask_gemini.assert_called_once()
+        self.assertTrue(ask_gemini.call_args.kwargs["use_search"])
 
     def test_supported_clock_questions_are_local_and_unrecognized_question_falls_back(self):
         questions = (

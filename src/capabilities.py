@@ -47,6 +47,18 @@ _CURRENT_EVENT_QUESTIONS = {
     "give me yesterdays news",
 }
 
+_LIVE_INFO_TERMS = re.compile(
+    r"\b(?:what(?:'s| is) new|latest|recent|recently|current|currently|today|today's|tonight|"
+    r"yesterday|this week|this month|breaking|live|real[- ]time|news|"
+    r"weather|forecast|stock price|exchange rate|score|standings|schedule)\b",
+    re.IGNORECASE,
+)
+
+
+def needs_live_search(question: str) -> bool:
+    """Return whether a request is likely to need fresh information."""
+    return bool(_LIVE_INFO_TERMS.search(question))
+
 
 def _normalize_question(question: str) -> str:
     normalized = question.casefold().replace("’", "'")
@@ -70,11 +82,10 @@ def build_runtime_capability_context() -> str:
     """Describe capabilities ARIA's application actually exposes to Gemini."""
     return (
         "ARIA RUNTIME CAPABILITY FACTS (authoritative for this application):\n"
-        "- Gemini API: configured for model responses; an individual request may fail. "
-        "This connection does not provide general web access.\n"
+        "- Gemini API: configured for model responses; an individual request may fail.\n"
         "- General model knowledge: available; its knowledge cutoff is not verified by ARIA.\n"
-        "- Live web search: unavailable; no web search or browsing tool is configured.\n"
-        "- Live news/current-event retrieval: unavailable; no news source is queried.\n"
+        "- Live web search: Exa is the primary provider when configured; searches may fail or return no sources.\n"
+        "- Gemini Google Search grounding is an optional fallback and may be disabled.\n"
         "- Current date/time: ARIA Core reads the host system clock for direct date/time "
         "questions; that timestamp is not supplied to Gemini. Host clock accuracy is not "
         "independently verified.\n"
@@ -82,12 +93,9 @@ def build_runtime_capability_context() -> str:
         "- Persistent memory: local SQLite, available through explicit memory commands "
         "and bounded matching retrieval when the database is accessible.\n\n"
         "Capability and provenance rules:\n"
-        "- Never claim ARIA searched, browsed, checked a website, retrieved news, or "
-        "received a timestamp from Gemini unless that action and its result are explicitly "
-        "provided by this application.\n"
-        "- Do not present general model knowledge as verified today's or yesterday's news.\n"
-        "- If asked for current events, state that ARIA cannot verify them without live "
-        "retrieval; offer general background only with a clear recency caveat.\n"
+        "- When web search results are supplied, use them for fresh claims and distinguish sourced facts from background knowledge.\n"
+        "- Do not claim search was successful unless search results are present in this response.\n"
+        "- If no web search results are available for a current-events request, say that current details could not be verified.\n"
         "- For date/time questions that reach Gemini, do not guess a timestamp; say that "
         "no timestamp was provided and ARIA Core can answer direct date/time questions "
         "from the host system clock.\n"
@@ -102,9 +110,7 @@ def answer_capability_question(
 
     if normalized in _REALTIME_QUESTIONS:
         return (
-            "ARIA can use Gemini's general model knowledge, but it has no live web search "
-            "or live news retrieval. My knowledge may be out of date, and I cannot verify current "
-            "events without a source provided to me."
+            "Yes. ARIA can use Exa for live web search when it is configured. Gemini Google Search grounding is an optional fallback."
         )
 
     if normalized in _DATE_QUESTIONS:
@@ -115,10 +121,6 @@ def answer_capability_question(
         )
 
     if normalized in _CURRENT_EVENT_QUESTIONS:
-        return (
-            "ARIA has no live web or news retrieval, so I cannot verify current events, "
-            "including today's or yesterday's news. I can offer general background from model knowledge, "
-            "which may be out of date, or summarize a source you provide."
-        )
+        return None
 
     return None
